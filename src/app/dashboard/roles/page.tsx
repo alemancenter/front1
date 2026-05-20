@@ -244,7 +244,7 @@ export default function RolesPage() {
           <CardTitle>قائمة الأدوار</CardTitle>
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input name="field-app-dashboard-roles-page-247-1"
+            <input
               type="text"
               placeholder="بحث..."
               value={searchQuery}

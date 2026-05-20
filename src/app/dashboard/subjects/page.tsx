@@ -279,7 +279,7 @@ export default function SubjectsPage() {
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <label htmlFor="subjects-search" className="sr-only">بحث عن مادة</label>
-            <input name="field-app-dashboard-subjects-page-282-2"
+            <input
               type="text"
               placeholder="بحث..."
               value={searchQuery}

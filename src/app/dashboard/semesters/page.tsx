@@ -284,7 +284,7 @@ export default function SemestersPage() {
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <label htmlFor="semesters-search" className="sr-only">بحث عن فصل</label>
-            <input name="field-app-dashboard-semesters-page-287-2"
+            <input
               type="text"
               placeholder="بحث..."
               value={searchQuery}
