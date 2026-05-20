@@ -184,6 +184,26 @@ const securityHeaders = [
   },
 ];
 
+
+/*
+ * Dashboard-only CSP relaxation:
+ * The admin rich-text editor stack (Summernote/jQuery) may internally use
+ * dynamic JavaScript evaluation. Keep public visitor pages strict for AdSense
+ * and SEO, but allow unsafe-eval only inside /dashboard where authenticated
+ * administrators use the editor.
+ */
+const dashboardSecurityHeaders = securityHeaders.map((header) => {
+  if (header.key !== 'Content-Security-Policy') return header;
+
+  return {
+    ...header,
+    value: header.value.replace(
+      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    ),
+  };
+});
+
 const publicPageCacheHeaders = [
   /*
    * Suitable for public visitor pages.
@@ -289,7 +309,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/dashboard/:path*',
-        headers: [...securityHeaders, ...noStoreHeaders],
+        headers: [...dashboardSecurityHeaders, ...noStoreHeaders],
       },
       {
         source: '/login',

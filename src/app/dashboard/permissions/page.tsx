@@ -304,7 +304,7 @@ export default function PermissionsPage() {
             )}
             <div className="relative">
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
+              <input name="field-app-dashboard-permissions-page-307-1"
                 type="text"
                 placeholder="بحث..."
                 value={searchQuery}

@@ -313,7 +313,7 @@ export default function EmailBouncePage() {
                 className="pr-9"
               />
             </div>
-            <select
+            <select name="field-app-dashboard-settings-email-bounce-page-316-1"
               value={typeFilter}
               onChange={e => { setTypeFilter(e.target.value as BounceType | ''); setPage(1); }}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -363,7 +363,7 @@ export default function EmailBouncePage() {
                 <thead className="bg-gray-50 text-right text-xs font-medium uppercase tracking-wide text-gray-500">
                   <tr>
                     <th className="px-4 py-3">
-                      <input
+                      <input name="field-app-dashboard-settings-email-bounce-page-366-2"
                         type="checkbox"
                         checked={allSelected}
                         onChange={toggleAll}
@@ -387,7 +387,7 @@ export default function EmailBouncePage() {
                       )}
                     >
                       <td className="px-4 py-3">
-                        <input
+                        <input name="field-app-dashboard-settings-email-bounce-page-390-3"
                           type="checkbox"
                           checked={selectedEmails.includes(event.email)}
                           onChange={() => toggleOne(event.email)}
@@ -566,7 +566,7 @@ export default function EmailBouncePage() {
               {/* TLS toggle */}
               <div className="flex items-center gap-3">
                 <label className="relative inline-flex cursor-pointer items-center">
-                  <input
+                  <input name="field-app-dashboard-settings-email-bounce-page-569-4"
                     type="checkbox"
                     className="sr-only peer"
                     checked={cfg.bounce_imap_tls === 'true'}
@@ -582,7 +582,7 @@ export default function EmailBouncePage() {
               {/* Enabled toggle */}
               <div className="flex items-center gap-3">
                 <label className="relative inline-flex cursor-pointer items-center">
-                  <input
+                  <input name="field-app-dashboard-settings-email-bounce-page-585-5"
                     type="checkbox"
                     className="sr-only peer"
                     checked={cfg.bounce_processor_enabled === 'true'}

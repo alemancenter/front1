@@ -306,7 +306,7 @@ export default function NotificationsPage() {
         <CardContent>
           {/* Select All */}
           <div className="flex items-center gap-3 pb-4 border-b border-border mb-4">
-            <input
+            <input name="field-app-dashboard-notifications-page-309-1"
               type="checkbox"
               checked={selectedIds.length === filteredNotifications.length && filteredNotifications.length > 0}
               onChange={selectAll}
@@ -335,7 +335,7 @@ export default function NotificationsPage() {
                       !notification.read_at ? 'bg-primary/5' : 'hover:bg-muted'
                     }`}
                   >
-                    <input
+                    <input name="field-app-dashboard-notifications-page-338-2"
                       type="checkbox"
                       checked={selectedIds.includes(notification.id)}
                       onChange={() => toggleSelect(notification.id)}

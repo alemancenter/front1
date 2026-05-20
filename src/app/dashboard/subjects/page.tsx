@@ -231,7 +231,7 @@ export default function SubjectsPage() {
           <p className="text-muted-foreground">إدارة المواد والمناهج الدراسية</p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <select name="field-app-dashboard-subjects-page-234-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value)}
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm"
@@ -279,7 +279,7 @@ export default function SubjectsPage() {
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <label htmlFor="subjects-search" className="sr-only">بحث عن مادة</label>
-            <input
+            <input name="field-app-dashboard-subjects-page-282-2"
               type="text"
               placeholder="بحث..."
               value={searchQuery}

@@ -316,7 +316,7 @@ function VerifyEmailContent() {
             {showChangeEmail && (
               <div className="rounded-xl border border-border bg-muted/30 p-3 text-right">
                 <label className="mb-2 block text-sm font-bold">البريد الإلكتروني الجديد</label>
-                <input
+                <input name="field-app-auth-verify-email-page-319-1"
                   type="email"
                   value={newEmail}
                   onChange={(event) => setNewEmail(event.target.value)}

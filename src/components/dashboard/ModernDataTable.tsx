@@ -169,7 +169,7 @@ export default function ModernDataTable({
             <tr>
               {actions && (
                 <th className="w-12">
-                  <input
+                  <input name="field-components-dashboard-moderndatatable-172-1"
                     type="checkbox"
                     aria-label="تحديد جميع الصفوف"
                     checked={selectedRows.size === paginatedData.length}
@@ -230,7 +230,7 @@ export default function ModernDataTable({
                 >
                   {actions && (
                     <td>
-                      <input
+                      <input name="field-components-dashboard-moderndatatable-233-2"
                         type="checkbox"
                         aria-label="تحديد الصف"
                         checked={selectedRows.has(row[keyField])}

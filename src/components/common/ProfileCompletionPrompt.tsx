@@ -54,7 +54,7 @@ export default function ProfileCompletionPrompt({ description, onComplete }: Pro
             الدولة <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <select
+            <select name="field-components-common-profilecompletionprompt-57-1"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               className="w-full appearance-none bg-background border border-border rounded-xl px-4 py-3 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"

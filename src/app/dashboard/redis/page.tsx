@@ -349,7 +349,7 @@ export default function RedisPage() {
                       onChange={(e) => setSearch(e.target.value)}
                       className="w-64"
                     />
-                    <select
+                    <select name="field-app-dashboard-redis-page-352-1"
                       value={ttlFilter}
                       onChange={(e) => { setTtlFilter(e.target.value as RedisTTLFilter); setKeysPage(1); }}
                       className="h-10 rounded-md border border-border bg-background px-3 text-sm"
@@ -533,7 +533,7 @@ export default function RedisPage() {
             <p className="text-xs text-muted-foreground">Default is 3600 seconds. Persistent keys are disabled by default to protect Redis memory.</p>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <input
+            <input name="field-app-dashboard-redis-page-536-2"
               type="checkbox"
               checked={newKeyData.persist}
               onChange={(e) => setNewKeyData({...newKeyData, persist: e.target.checked})}

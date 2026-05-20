@@ -145,7 +145,7 @@ export default function DashboardHeader() {
         {/* Search */}
         <div className="hidden md:flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
           <Search className="w-4 h-4 text-muted-foreground" />
-          <input
+          <input name="field-components-dashboard-dashboardheader-148-1"
             type="text"
             placeholder="بحث..."
             className="bg-transparent border-none outline-none text-sm w-48 placeholder:text-muted-foreground"

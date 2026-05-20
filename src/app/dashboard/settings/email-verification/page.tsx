@@ -218,7 +218,7 @@ export default function EmailVerificationDashboardPage() {
                 className="pr-10"
               />
             </div>
-            <select
+            <select name="field-app-dashboard-settings-email-verification-page-221-1"
               value={emailStatus}
               onChange={(event) => setEmailStatus(event.target.value)}
               className="h-10 rounded-md border border-border bg-background px-3 text-sm"
@@ -228,7 +228,7 @@ export default function EmailVerificationDashboardPage() {
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
-            <select
+            <select name="field-app-dashboard-settings-email-verification-page-231-2"
               value={only}
               onChange={(event) => setOnly(event.target.value)}
               className="h-10 rounded-md border border-border bg-background px-3 text-sm"
@@ -316,7 +316,7 @@ export default function EmailVerificationDashboardPage() {
               <thead className="bg-muted/50">
                 <tr>
                   <th className="w-12 p-3 text-right">
-                    <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} />
+                    <input name="field-app-dashboard-settings-email-verification-page-319-3" type="checkbox" checked={allVisibleSelected} onChange={toggleAll} />
                   </th>
                   <th className="p-3 text-right">المستخدم</th>
                   <th className="p-3 text-right">حالة البريد</th>
@@ -339,7 +339,7 @@ export default function EmailVerificationDashboardPage() {
                   users.map((user) => (
                     <tr key={user.id} className="border-t border-border">
                       <td className="p-3">
-                        <input
+                        <input name="field-app-dashboard-settings-email-verification-page-342-4"
                           type="checkbox"
                           checked={selectedIds.includes(user.id)}
                           onChange={() => toggleOne(user.id)}

@@ -433,7 +433,7 @@ export default function FilesPage() {
               )}
               <div className="relative">
                 <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
+                <input name="field-app-dashboard-files-page-436-1"
                   type="text"
                   placeholder="بحث..."
                   value={searchQuery}

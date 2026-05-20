@@ -283,7 +283,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                   >
                     <Camera size={18} />
                   </button>
-                  <input 
+                  <input name="field-app-dashboard-users-id-page-286-1" 
                     type="file" 
                     ref={fileInputRef} 
                     className="hidden" 

@@ -657,7 +657,7 @@ export default function SettingsPage() {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <input
+                        <input name="field-app-dashboard-settings-page-660-1"
                           type="file"
                           accept="image/*"
                           ref={logoInputRef}
@@ -701,7 +701,7 @@ export default function SettingsPage() {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <input
+                        <input name="field-app-dashboard-settings-page-704-2"
                           type="file"
                           accept="image/*"
                           ref={faviconInputRef}
@@ -798,7 +798,7 @@ export default function SettingsPage() {
                           <div className="flex-1">
                             <label className="text-xs text-muted-foreground mb-1 block">اسم الحساب (قبل @)</label>
                             <div className="flex items-center border rounded-lg overflow-hidden bg-background">
-                              <input
+                              <input name="field-app-dashboard-settings-page-801-3"
                                 type="text"
                                 value={serverMailPrefix}
                                 onChange={(e) => setServerMailPrefix(e.target.value.toLowerCase().replace(/[^a-z0-9._+-]/g, ''))}

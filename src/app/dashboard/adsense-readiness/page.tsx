@@ -113,12 +113,12 @@ export default function AdsenseReadinessPage() {
 
         <section className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="grid gap-3 md:grid-cols-[180px_180px_1fr_auto]">
-            <select value={type} onChange={(e) => setType(e.target.value as any)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-blue-300">
+            <select name="field-app-dashboard-adsense-readiness-page-116-1" value={type} onChange={(e) => setType(e.target.value as any)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-blue-300">
               <option value="all">الكل</option>
               <option value="article">المقالات</option>
               <option value="post">المنشورات</option>
             </select>
-            <select value={level} onChange={(e) => setLevel(e.target.value as any)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-blue-300">
+            <select name="field-app-dashboard-adsense-readiness-page-121-2" value={level} onChange={(e) => setLevel(e.target.value as any)} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-blue-300">
               <option value="all">كل الحالات</option>
               <option value="ready">جاهز</option>
               <option value="review">يحتاج مراجعة</option>
@@ -126,7 +126,7 @@ export default function AdsenseReadinessPage() {
             </select>
             <div className="relative">
               <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') loadReport(); }} placeholder="بحث بعنوان المقال أو المنشور" className="h-11 w-full rounded-xl border border-slate-200 pr-10 pl-3 text-sm font-bold outline-none focus:border-blue-300" />
+              <input name="field-app-dashboard-adsense-readiness-page-129-3" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') loadReport(); }} placeholder="بحث بعنوان المقال أو المنشور" className="h-11 w-full rounded-xl border border-slate-200 pr-10 pl-3 text-sm font-bold outline-none focus:border-blue-300" />
             </div>
             <button onClick={loadReport} className="h-11 rounded-xl border border-blue-200 bg-blue-50 px-5 text-sm font-black text-blue-700 transition hover:bg-blue-100">بحث</button>
           </div>

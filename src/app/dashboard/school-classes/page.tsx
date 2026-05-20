@@ -170,7 +170,7 @@ export default function SchoolClassesPage() {
           <p className="text-muted-foreground">إدارة الصفوف والمراحل الدراسية</p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <select name="field-app-dashboard-school-classes-page-173-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value)}
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm"
@@ -192,7 +192,7 @@ export default function SchoolClassesPage() {
           <CardTitle>قائمة الصفوف</CardTitle>
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
+            <input name="field-app-dashboard-school-classes-page-195-2"
               type="text"
               placeholder="بحث..."
               value={searchQuery}

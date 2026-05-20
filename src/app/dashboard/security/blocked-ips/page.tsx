@@ -261,7 +261,7 @@ export default function BlockedIpsPage() {
               </div>
               <div className="relative w-full md:w-72">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
+                <input name="field-app-dashboard-security-blocked-ips-page-264-1"
                   type="text"
                   placeholder="بحث عن IP أو السبب..."
                   value={searchQuery}

@@ -436,7 +436,7 @@ export default function CategoriesPage() {
           <p className="text-muted-foreground">إدارة فئات المقالات والمحتوى</p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <select name="field-app-dashboard-categories-page-439-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value as '1' | '2' | '3' | '4')}
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm"

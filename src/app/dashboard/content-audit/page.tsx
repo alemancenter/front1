@@ -588,7 +588,7 @@ export default function ContentAuditPage() {
                 leftIcon={<Search className="h-4 w-4" />}
                 placeholder="بحث في العنوان أو السبب أو الرابط"
               />
-              <select
+              <select name="field-app-dashboard-content-audit-page-591-1"
                 value={riskFilter}
                 onChange={(event) => {
                   setRiskFilter(event.target.value);
@@ -602,7 +602,7 @@ export default function ContentAuditPage() {
                   </option>
                 ))}
               </select>
-              <select
+              <select name="field-app-dashboard-content-audit-page-605-2"
                 value={typeFilter}
                 onChange={(event) => {
                   setTypeFilter(event.target.value);

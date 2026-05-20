@@ -286,7 +286,7 @@ export default function CommentsPage() {
 
         <div className="flex items-center gap-3">
             <div className="relative min-w-[200px]">
-                <select
+                <select name="field-app-dashboard-comments-page-289-1"
                     value={selectedDatabase}
                     onChange={(e) => setSelectedDatabase(e.target.value)}
                     className="w-full h-10 pr-3 pl-10 bg-gray-50 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
@@ -308,7 +308,7 @@ export default function CommentsPage() {
       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
+          <input name="field-app-dashboard-comments-page-311-2"
             type="text"
             placeholder="بحث في محتوى التعليقات..."
             value={searchQuery}
@@ -317,7 +317,7 @@ export default function CommentsPage() {
           />
         </div>
         <div className="relative sm:w-56">
-          <select
+          <select name="field-app-dashboard-comments-page-320-3"
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value as CommentStatus)}
             className="w-full py-2.5 pr-3 pl-10 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
@@ -391,7 +391,7 @@ export default function CommentsPage() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-4 text-center">
-                    <input
+                    <input name="field-app-dashboard-comments-page-394-4"
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={toggleSelectAll}
@@ -425,7 +425,7 @@ export default function CommentsPage() {
                       className="group hover:bg-gray-50/50 transition-colors"
                     >
                       <td className="px-6 py-4 text-center">
-                        <input
+                        <input name="field-app-dashboard-comments-page-428-5"
                           type="checkbox"
                           checked={selectedIds.includes(comment.id)}
                           onChange={() => toggleSelectOne(comment.id)}

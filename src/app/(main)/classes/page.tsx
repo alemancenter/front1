@@ -129,7 +129,7 @@ export default function ClassesPage() {
           <div className="grid gap-3 md:grid-cols-[1fr_230px]">
             <label className="relative block">
               <Search className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
+              <input name="field-app-main-classes-page-132-1"
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -140,7 +140,7 @@ export default function ClassesPage() {
 
             <label className="relative block">
               <SlidersHorizontal className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <select
+              <select name="field-app-main-classes-page-143-2"
                 value={selectedDatabase}
                 onChange={(event) => setSelectedDatabase(event.target.value)}
                 className="h-14 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 pr-14 text-right text-sm font-black text-slate-800 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100"

@@ -548,7 +548,7 @@ export default function CreatePostPage() {
               />
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
-                  <input
+                  <input name="field-app-dashboard-posts-create-page-551-1"
                     type="checkbox"
                     checked={!!formData.is_active}
                     onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.checked }))}
@@ -565,7 +565,7 @@ export default function CreatePostPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <input
+                  <input name="field-app-dashboard-posts-create-page-568-2"
                     type="checkbox"
                     checked={!!formData.is_featured}
                     onChange={(e) => setFormData((prev) => ({ ...prev, is_featured: e.target.checked }))}
@@ -595,7 +595,7 @@ export default function CreatePostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <input
+              <input name="field-app-dashboard-posts-create-page-598-3"
                 type="file"
                 accept="image/*"
                 onChange={(e) => setFormData((prev) => ({ ...prev, image: e.target.files?.[0] }))}
@@ -612,7 +612,7 @@ export default function CreatePostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <input
+              <input name="field-app-dashboard-posts-create-page-615-4"
                 type="file"
                 multiple
                 onChange={(e) => setFormData((prev) => ({ ...prev, attachments: Array.from(e.target.files || []) }))}

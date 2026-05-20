@@ -693,7 +693,7 @@ export default function MessagesPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">نص الرسالة</label>
-            <textarea
+            <textarea name="field-app-dashboard-messages-page-696-1"
               className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-y focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="اكتب رسالتك هنا..."
               value={composeData.body}

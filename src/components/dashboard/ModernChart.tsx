@@ -94,7 +94,7 @@ export default function ModernChart({
             </div>
 
             {/* Time Range */}
-            <select
+            <select name="field-components-dashboard-modernchart-97-1"
               aria-label="اختر الفترة الزمنية للرسم البياني"
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as any)}

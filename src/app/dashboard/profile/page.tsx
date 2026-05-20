@@ -282,7 +282,7 @@ export default function ProfilePage() {
                   >
                     <Camera size={18} />
                   </button>
-                  <input 
+                  <input name="field-app-dashboard-profile-page-285-1" 
                     type="file" 
                     ref={fileInputRef} 
                     className="hidden" 

@@ -469,7 +469,7 @@ export default function SecurityPage() {
       <Card>
         <CardContent className="py-4">
           <div className="flex flex-wrap items-center gap-4">
-            <select
+            <select name="field-app-dashboard-security-logs-page-472-1"
               value={filters.event_type}
               onChange={(e) => setFilters({ ...filters, event_type: e.target.value })}
               className="bg-muted border-none rounded-lg px-3 py-2 text-sm"
@@ -481,7 +481,7 @@ export default function SecurityPage() {
               <option value="unauthorized_access">وصول غير مصرح</option>
               <option value="account_locked">حساب مقفل</option>
             </select>
-            <select
+            <select name="field-app-dashboard-security-logs-page-484-2"
               value={filters.severity}
               onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
               className="bg-muted border-none rounded-lg px-3 py-2 text-sm"
@@ -492,7 +492,7 @@ export default function SecurityPage() {
               <option value="danger">خطر</option>
               <option value="critical">حرج</option>
             </select>
-            <select
+            <select name="field-app-dashboard-security-logs-page-495-3"
               value={filters.is_resolved}
               onChange={(e) => setFilters({ ...filters, is_resolved: e.target.value })}
               className="bg-muted border-none rounded-lg px-3 py-2 text-sm"
@@ -542,7 +542,7 @@ export default function SecurityPage() {
           </div>
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
+            <input name="field-app-dashboard-security-logs-page-545-4"
               type="text"
               placeholder="بحث بـ IP..."
               value={searchQuery}
@@ -713,7 +713,7 @@ export default function SecurityPage() {
         <div className="space-y-4 mt-4">
           <div>
             <label className="text-sm text-muted-foreground">ملاحظات الحل *</label>
-            <textarea
+            <textarea name="field-app-dashboard-security-logs-page-716-5"
               value={resolveNotes}
               onChange={(e) => setResolveNotes(e.target.value)}
               placeholder="أدخل ملاحظات عن كيفية حل المشكلة..."
@@ -751,7 +751,7 @@ export default function SecurityPage() {
           </div>
           <div>
             <label className="text-sm text-muted-foreground">سبب الحظر *</label>
-            <textarea
+            <textarea name="field-app-dashboard-security-logs-page-754-6"
               value={blockModal.reason}
               onChange={(e) => setBlockModal({ ...blockModal, reason: e.target.value })}
               placeholder="أدخل سبب حظر هذا العنوان..."

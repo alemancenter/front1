@@ -676,7 +676,7 @@ function TrafficTab({
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                   <span className="text-xs text-gray-500">عرض</span>
-                  <select
+                  <select name="field-app-dashboard-monitor-page-679-1"
                     value={visitorPerPage}
                     onChange={(e) => onChangePerPage(e.target.value as '20' | '50' | '100' | 'all')}
                     className="bg-transparent text-sm focus:outline-none cursor-pointer"
@@ -689,7 +689,7 @@ function TrafficTab({
                 </div>
 
                 <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 cursor-pointer">
-                  <input
+                  <input name="field-app-dashboard-monitor-page-692-2"
                     type="checkbox"
                     className="accent-blue-500"
                     checked={includeBots}
@@ -714,7 +714,7 @@ function TrafficTab({
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input 
+                <input name="field-app-dashboard-monitor-page-717-3" 
                   type="text" 
                   placeholder="بحث عن مستخدم، IP، دولة..." 
                   value={searchQuery}
@@ -744,7 +744,7 @@ function TrafficTab({
                 </button>
               </div>
 
-              <select 
+              <select name="field-app-dashboard-monitor-page-747-4" 
                 value={filterCountry}
                 onChange={(e) => setFilterCountry(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
@@ -1024,7 +1024,7 @@ function SecurityTab({
             <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-100">
               <tr>
                 <th className="px-4 py-4 w-[48px]">
-                  <input
+                  <input name="field-app-dashboard-monitor-page-1027-5"
                     ref={selectAllRef}
                     type="checkbox"
                     checked={allSelected}
@@ -1049,7 +1049,7 @@ function SecurityTab({
                   onClick={() => onViewLog(log)}
                 >
                   <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                    <input
+                    <input name="field-app-dashboard-monitor-page-1052-6"
                       type="checkbox"
                       checked={selectedLogIds.includes(log.id)}
                       onChange={() => onToggleLog(log.id)}

@@ -520,7 +520,7 @@ export default function CalendarPage() {
           />
           <div>
             <label className="mb-1.5 block text-sm font-medium">الوصف</label>
-            <textarea
+            <textarea name="field-app-dashboard-calendar-page-523-1"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}

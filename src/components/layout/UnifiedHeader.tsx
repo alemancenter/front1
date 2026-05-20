@@ -126,7 +126,7 @@ export default function UnifiedHeader() {
             <div className="hidden lg:block">
               <div className="relative group">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-blue-600 transition-colors" />
-                <input 
+                <input name="field-components-layout-unifiedheader-129-1" 
                   type="text" 
                   placeholder="ابحث في الموقع..." 
                   className="w-64 h-10 pr-10 pl-4 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-sm outline-none"
@@ -245,7 +245,7 @@ export default function UnifiedHeader() {
             <div className="mt-4 px-3">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input 
+                <input name="field-components-layout-unifiedheader-248-2" 
                   type="text" 
                   placeholder="ابحث في الموقع..." 
                   className="w-full h-10 pr-10 pl-4 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white text-sm outline-none"

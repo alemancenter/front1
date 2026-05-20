@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
           </button>
 
           {/* Period Selector */}
-          <select
+          <select name="field-app-dashboard-analytics-page-226-1"
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(Number(e.target.value))}
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -580,7 +580,7 @@ export default function AnalyticsPage() {
               {/* Search bar */}
               <div className="mt-4 relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
+                <input name="field-app-dashboard-analytics-page-583-2"
                   type="text"
                   placeholder="بحث بالدولة، المدينة، المتصفح، الصفحة، أو اسم العضو..."
                   value={visitorsSearch}
@@ -791,7 +791,7 @@ export default function AnalyticsPage() {
                   {/* Page jump */}
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">انتقل للصفحة:</span>
-                    <input
+                    <input name="field-app-dashboard-analytics-page-794-3"
                       type="number"
                       min={1}
                       max={totalPages}

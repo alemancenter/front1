@@ -173,22 +173,22 @@ export default function QuickSearch({ onSearch, className, showTitle = true, var
             />
           </div>
 
-          <select aria-label="اختر الصف" value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)} disabled={isLoadingClasses} className={selectClass}>
+          <select name="field-components-search-quicksearch-176-2" aria-label="اختر الصف" value={selectedClass} onChange={(event) => setSelectedClass(event.target.value)} disabled={isLoadingClasses} className={selectClass}>
             <option value="">{isLoadingClasses ? 'جاري التحميل...' : 'اختر الصف'}</option>
             {classes.map((cls) => <option key={cls.id} value={cls.id}>{cls.name}</option>)}
           </select>
 
-          <select aria-label="نوع المحتوى" value={selectedFileType} onChange={(event) => setSelectedFileType(event.target.value)} className={selectClass}>
+          <select name="field-components-search-quicksearch-181-3" aria-label="نوع المحتوى" value={selectedFileType} onChange={(event) => setSelectedFileType(event.target.value)} className={selectClass}>
             <option value="">نوع المحتوى</option>
             {fileTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
           </select>
 
-          <select aria-label="ترتيب النتائج" value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value)} disabled={!selectedClass || isLoadingSubjects} className={selectClass}>
+          <select name="field-components-search-quicksearch-186-4" aria-label="ترتيب النتائج" value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value)} disabled={!selectedClass || isLoadingSubjects} className={selectClass}>
             <option value="">{isLoadingSubjects ? 'جاري التحميل...' : 'المادة'}</option>
             {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
           </select>
 
-          <select aria-label="الفصل الدراسي" value={selectedSemester} onChange={(event) => setSelectedSemester(event.target.value)} disabled={!selectedSubject || isLoadingSemesters} className={selectClass}>
+          <select name="field-components-search-quicksearch-191-5" aria-label="الفصل الدراسي" value={selectedSemester} onChange={(event) => setSelectedSemester(event.target.value)} disabled={!selectedSubject || isLoadingSemesters} className={selectClass}>
             <option value="">{isLoadingSemesters ? 'جاري التحميل...' : 'الفصل الدراسي'}</option>
             {semesters.map((semester) => <option key={semester.id} value={semester.id}>{semester.name}</option>)}
           </select>

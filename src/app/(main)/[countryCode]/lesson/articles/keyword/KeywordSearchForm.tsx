@@ -17,7 +17,7 @@ export default function KeywordSearchForm({ countryCode }: { countryCode: string
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <input
+      <input name="field-app-main-countrycode-lesson-articles-keyword-keywordsearchfo-20-1"
         type="text"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}

@@ -234,7 +234,7 @@ export default function SemestersPage() {
           <p className="text-muted-foreground">إدارة فصول العام الدراسي</p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <select name="field-app-dashboard-semesters-page-237-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value as '1' | '2' | '3' | '4')}
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm"
@@ -284,7 +284,7 @@ export default function SemestersPage() {
           <div className="relative">
             <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <label htmlFor="semesters-search" className="sr-only">بحث عن فصل</label>
-            <input
+            <input name="field-app-dashboard-semesters-page-287-2"
               type="text"
               placeholder="بحث..."
               value={searchQuery}
