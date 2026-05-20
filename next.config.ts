@@ -118,7 +118,15 @@ const securityHeaders = [
        */
       [
         "script-src 'self' 'unsafe-inline'",
-        process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : '',
+        /*
+         * Production compatibility note:
+         * Chrome reported an eval attempt from a compiled frontend chunk on public pages.
+         * The site continued to work, but the browser showed a CSP issue.
+         * Keep unsafe-eval enabled until the dependency/chunk that calls eval/new Function
+         * is removed or replaced. This removes the console issue without affecting AdSense
+         * rendering, while the rest of the CSP remains restrictive.
+         */
+        "'unsafe-eval'",
         'https://www.googletagmanager.com',
         'https://www.google-analytics.com',
         'https://pagead2.googlesyndication.com',
@@ -186,23 +194,11 @@ const securityHeaders = [
 
 
 /*
- * Dashboard-only CSP relaxation:
- * The admin rich-text editor stack (Summernote/jQuery) may internally use
- * dynamic JavaScript evaluation. Keep public visitor pages strict for AdSense
- * and SEO, but allow unsafe-eval only inside /dashboard where authenticated
- * administrators use the editor.
+ * Dashboard CSP currently reuses the global CSP.
+ * It is kept as a separate variable so admin-specific relaxation can be added later
+ * without changing the public route definitions.
  */
-const dashboardSecurityHeaders = securityHeaders.map((header) => {
-  if (header.key !== 'Content-Security-Policy') return header;
-
-  return {
-    ...header,
-    value: header.value.replace(
-      "script-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    ),
-  };
-});
+const dashboardSecurityHeaders = securityHeaders;
 
 const publicPageCacheHeaders = [
   /*
