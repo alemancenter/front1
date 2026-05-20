@@ -1,0 +1,251 @@
+/* --------------------------------------------------------------------------
+   Dashboard professional redesign layer
+   Keeps dashboard logic intact while aligning admin UI with the public premium
+   educational identity: clear blue system, readable contrast, soft surfaces,
+   and stable light/dark behavior.
+-------------------------------------------------------------------------- */
+@layer components {
+  .dashboard-scope {
+    --dash-bg: #f5f8ff;
+    --dash-bg-soft: #eef4ff;
+    --dash-card: rgba(255, 255, 255, 0.92);
+    --dash-card-solid: #ffffff;
+    --dash-card-muted: #f8fafc;
+    --dash-border: #dbe6f5;
+    --dash-border-soft: #e8eef8;
+    --dash-text: #0f172a;
+    --dash-muted: #475569;
+    --dash-primary: #0b5cff;
+    --dash-primary-dark: #0848c8;
+    --dash-primary-soft: #eaf2ff;
+    --dash-sidebar: #071a36;
+    --dash-sidebar-2: #0a2d63;
+    --dash-sidebar-muted: rgba(226, 232, 240, 0.76);
+    --dash-shadow: 0 18px 48px -28px rgba(15, 23, 42, 0.32);
+    --dash-shadow-strong: 0 28px 80px -42px rgba(15, 23, 42, 0.42);
+    background:
+      radial-gradient(circle at top right, rgba(11, 92, 255, 0.08), transparent 32rem),
+      linear-gradient(180deg, var(--dash-bg) 0%, #ffffff 46%, var(--dash-bg) 100%);
+    color: var(--dash-text);
+  }
+
+  html.dark .dashboard-scope {
+    --dash-bg: #07111f;
+    --dash-bg-soft: #0b1729;
+    --dash-card: rgba(15, 29, 51, 0.88);
+    --dash-card-solid: #101d33;
+    --dash-card-muted: #0b1729;
+    --dash-border: rgba(148, 163, 184, 0.24);
+    --dash-border-soft: rgba(148, 163, 184, 0.16);
+    --dash-text: #e5edf8;
+    --dash-muted: #a9b8cf;
+    --dash-primary: #60a5fa;
+    --dash-primary-dark: #93c5fd;
+    --dash-primary-soft: rgba(37, 99, 235, 0.18);
+    --dash-sidebar: #020817;
+    --dash-sidebar-2: #071a36;
+    --dash-sidebar-muted: rgba(203, 213, 225, 0.78);
+    --dash-shadow: 0 22px 70px -38px rgba(0, 0, 0, 0.78);
+    --dash-shadow-strong: 0 32px 90px -44px rgba(0, 0, 0, 0.84);
+  }
+
+  .dashboard-main-area {
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--dash-primary), transparent 88%), transparent 30rem),
+      radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.10), transparent 28rem),
+      linear-gradient(180deg, var(--dash-bg) 0%, var(--dash-bg-soft) 100%);
+  }
+
+  .dashboard-sidebar {
+    background:
+      linear-gradient(180deg, var(--dash-sidebar) 0%, var(--dash-sidebar-2) 52%, #031025 100%) !important;
+    color: #f8fafc;
+    border-left: 1px solid rgba(255, 255, 255, 0.10) !important;
+    box-shadow: -18px 0 50px -34px rgba(2, 8, 23, 0.80);
+  }
+
+  .dashboard-sidebar-logo {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .dashboard-sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .dashboard-menu-item {
+    color: var(--dash-sidebar-muted) !important;
+    border: 1px solid transparent;
+    font-weight: 800;
+  }
+
+  .dashboard-menu-item:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .dashboard-menu-item svg {
+    color: currentColor !important;
+  }
+
+  .dashboard-menu-item-active {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #0b5cff 0%, #2563eb 55%, #06b6d4 100%) !important;
+    border-color: rgba(255, 255, 255, 0.20);
+    box-shadow: 0 14px 32px -18px rgba(96, 165, 250, 0.95);
+  }
+
+  .dashboard-submenu-item {
+    color: rgba(226, 232, 240, 0.78) !important;
+    border: 1px solid transparent;
+    font-weight: 700;
+  }
+
+  .dashboard-submenu-item:hover,
+  .dashboard-submenu-item-active {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .dashboard-topbar {
+    background: color-mix(in srgb, var(--dash-card-solid), transparent 8%) !important;
+    border-bottom: 1px solid var(--dash-border) !important;
+    box-shadow: 0 16px 42px -36px rgba(15, 23, 42, 0.45);
+  }
+
+  html.dark .dashboard-topbar {
+    background: rgba(7, 17, 31, 0.86) !important;
+  }
+
+  .dashboard-search-input {
+    background: var(--dash-card-muted) !important;
+    border: 1px solid var(--dash-border-soft) !important;
+    color: var(--dash-text) !important;
+  }
+
+  .dashboard-search-input::placeholder {
+    color: var(--dash-muted) !important;
+  }
+
+  .dashboard-hero-card,
+  .dashboard-panel,
+  .chart-container-modern,
+  .dashboard-scope .glass-card {
+    background: var(--dash-card) !important;
+    color: var(--dash-text) !important;
+    border: 1px solid var(--dash-border-soft) !important;
+    box-shadow: var(--dash-shadow) !important;
+    backdrop-filter: blur(18px);
+  }
+
+  .dashboard-hero-card {
+    border-radius: 2rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .dashboard-hero-card::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -10%;
+    top: -60%;
+    width: 20rem;
+    height: 20rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--dash-primary), transparent 86%);
+    filter: blur(22px);
+    pointer-events: none;
+  }
+
+  .dashboard-stat-card {
+    background: linear-gradient(180deg, var(--dash-card) 0%, color-mix(in srgb, var(--dash-card-solid), var(--dash-primary-soft) 16%) 100%) !important;
+    border: 1px solid var(--dash-border-soft) !important;
+    box-shadow: var(--dash-shadow) !important;
+  }
+
+  .dashboard-stat-card:hover {
+    box-shadow: var(--dash-shadow-strong) !important;
+  }
+
+  .dashboard-chip {
+    background: var(--dash-primary-soft);
+    color: var(--dash-primary-dark);
+    border: 1px solid color-mix(in srgb, var(--dash-primary), transparent 74%);
+  }
+
+  .chart-header-modern {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .chart-container-modern {
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .table-modern-enhanced {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+  }
+
+  .table-modern-enhanced thead th {
+    color: var(--dash-muted);
+    background: var(--dash-card-muted);
+    font-weight: 900;
+    font-size: 0.78rem;
+    padding: 0.85rem 1rem;
+    text-align: right;
+    border-top: 1px solid var(--dash-border-soft);
+    border-bottom: 1px solid var(--dash-border-soft);
+  }
+
+  .table-modern-enhanced tbody tr {
+    background: var(--dash-card-solid);
+    box-shadow: 0 10px 28px -24px rgba(15, 23, 42, 0.35);
+  }
+
+  html.dark .table-modern-enhanced tbody tr {
+    background: var(--dash-card-solid);
+  }
+
+  .table-modern-enhanced tbody td {
+    padding: 1rem;
+    border-top: 1px solid var(--dash-border-soft);
+    border-bottom: 1px solid var(--dash-border-soft);
+    color: var(--dash-text);
+  }
+
+  .table-modern-enhanced th:first-child,
+  .table-modern-enhanced td:first-child {
+    border-start-start-radius: 1rem;
+    border-end-start-radius: 1rem;
+    border-inline-start: 1px solid var(--dash-border-soft);
+  }
+
+  .table-modern-enhanced th:last-child,
+  .table-modern-enhanced td:last-child {
+    border-start-end-radius: 1rem;
+    border-end-end-radius: 1rem;
+    border-inline-end: 1px solid var(--dash-border-soft);
+  }
+
+  .dashboard-scope [class~="text-muted-foreground"] {
+    color: var(--dash-muted) !important;
+  }
+
+  .dashboard-scope [class~="bg-card"] {
+    background-color: var(--dash-card-solid) !important;
+  }
+
+  .dashboard-scope [class~="border-border"] {
+    border-color: var(--dash-border) !important;
+  }
+}
