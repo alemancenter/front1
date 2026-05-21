@@ -32,12 +32,20 @@ interface SearchResult {
 async function readSearchJson(response: Response) {
   const contentType = response.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
-    throw new Error(`Search endpoint returned ${response.status} ${response.statusText || 'non-JSON response'}`);
+    return {
+      success: true,
+      results: [],
+      warning: 'تعذر تحميل نتائج البحث حاليًا.',
+    };
   }
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.error || `Search endpoint failed with ${response.status}`);
+    return {
+      success: true,
+      results: [],
+      warning: data?.error || 'تعذر تحميل نتائج البحث حاليًا.',
+    };
   }
 
   return data;
@@ -157,7 +165,8 @@ function SearchContent() {
         const data = await readSearchJson(response);
         
         if (data.success) {
-          setResults(data.results);
+          setResults(Array.isArray(data.results) ? data.results : []);
+          if (data.warning) setError(data.warning);
         } else {
           setError(data.error || 'حدث خطأ أثناء البحث');
         }
@@ -221,6 +230,7 @@ function SearchContent() {
                     ].map((type) => (
                       <Link 
                         key={type.id} 
+                        prefetch={false}
                         href={`/search?${new URLSearchParams({
                             ...(classId && {class: classId}),
                             ...(subjectId && {subject: subjectId}),

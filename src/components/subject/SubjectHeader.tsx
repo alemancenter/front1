@@ -23,7 +23,7 @@ export default function SubjectHeader({ subjectName }: SubjectHeaderProps) {
             </p>
           </div>
 
-          <Link href="/search" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-5 text-sm font-black text-blue-700 transition hover:bg-blue-100">
+          <Link href="/search" prefetch={false} prefetch={false} className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-5 text-sm font-black text-blue-700 transition hover:bg-blue-100">
             <Search className="h-4 w-4" />
             ابحث في الملفات
           </Link>

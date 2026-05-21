@@ -73,79 +73,6 @@ const buildRemotePatterns = () => {
   return patterns;
 };
 
-const allowProductionUnsafeEvalForAds = process.env.NEXT_PUBLIC_ALLOW_UNSAFE_EVAL_FOR_ADS !== 'false';
-
-const googleAdScriptSources = [
-  'https://www.googletagmanager.com',
-  'https://www.google-analytics.com',
-  'https://pagead2.googlesyndication.com',
-  'https://*.googlesyndication.com',
-  'https://googleads.g.doubleclick.net',
-  'https://*.doubleclick.net',
-  'https://www.googleadservices.com',
-  'https://partner.googleadservices.com',
-  'https://securepubads.g.doubleclick.net',
-  'https://cdn-cookieyes.com',
-  'https://www.gstatic.com',
-  'https://accounts.google.com',
-  'https://*.adtrafficquality.google',
-  'https://fundingchoicesmessages.google.com',
-  'https://www.google.com',
-  'https://www.recaptcha.net',
-];
-
-const googleAdConnectSources = [
-  'https://api.alemancenter.com',
-  'https://www.googletagmanager.com',
-  'https://www.google-analytics.com',
-  'https://analytics.google.com',
-  'https://stats.g.doubleclick.net',
-  'https://pagead2.googlesyndication.com',
-  'https://*.googlesyndication.com',
-  'https://googleads.g.doubleclick.net',
-  'https://*.doubleclick.net',
-  'https://www.googleadservices.com',
-  'https://partner.googleadservices.com',
-  'https://securepubads.g.doubleclick.net',
-  'https://region1.google-analytics.com',
-  'https://region1.analytics.google.com',
-  'https://cdn-cookieyes.com',
-  'https://log.cookieyes.com',
-  'https://accounts.google.com',
-  'https://*.adtrafficquality.google',
-  'https://fundingchoicesmessages.google.com',
-  'https://www.google.com',
-  'https://www.recaptcha.net',
-  'https://csi.gstatic.com',
-];
-
-const googleAdFrameSources = [
-  'https://googleads.g.doubleclick.net',
-  'https://*.doubleclick.net',
-  'https://tpc.googlesyndication.com',
-  'https://*.googlesyndication.com',
-  'https://accounts.google.com',
-  'https://*.adtrafficquality.google',
-  'https://fundingchoicesmessages.google.com',
-  'https://www.google.com',
-  'https://www.recaptcha.net',
-];
-
-const scriptSrc = [
-  "'self'",
-  "'unsafe-inline'",
-  process.env.NODE_ENV === 'development' || allowProductionUnsafeEvalForAds ? "'unsafe-eval'" : '',
-  ...googleAdScriptSources,
-].filter(Boolean).join(' ');
-
-const connectSrc = [
-  "'self'",
-  ...googleAdConnectSources,
-  process.env.NODE_ENV === 'development' ? 'http://localhost:* http://127.0.0.1:*' : '',
-].filter(Boolean).join(' ');
-
-const frameSrc = googleAdFrameSources.join(' ');
-
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
@@ -185,22 +112,70 @@ const securityHeaders = [
       "default-src 'self'",
 
       /*
-       * AdSense/GTM-compatible CSP:
-       * - Consent Mode and CookieYes still run before ad loading.
-       * - unsafe-eval is controlled by NEXT_PUBLIC_ALLOW_UNSAFE_EVAL_FOR_ADS.
-       *   Default is enabled because Google ad/measurement vendors may use eval-like
-       *   constructs; set NEXT_PUBLIC_ALLOW_UNSAFE_EVAL_FOR_ADS=false to harden later.
+       * Production CSP hardening:
+       * - unsafe-inline remains because Next.js, CMP and ad vendors still require inline scripts/styles.
+       * - unsafe-eval is allowed only in development; production stays strict for public pages and dashboard.
+       * If a dependency requires eval in production, replace that dependency instead of weakening CSP globally.
        */
-      `script-src ${scriptSrc}`,
-      `script-src-elem ${scriptSrc}`,
+      [
+        "script-src 'self' 'unsafe-inline'",
+        process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : '',
+        'https://www.googletagmanager.com',
+        'https://www.google-analytics.com',
+        'https://pagead2.googlesyndication.com',
+        'https://googleads.g.doubleclick.net',
+        'https://cdn-cookieyes.com',
+        'https://www.gstatic.com',
+        'https://accounts.google.com',
+        'https://*.adtrafficquality.google',
+        'https://fundingchoicesmessages.google.com',
+        'https://www.google.com',
+        'https://www.recaptcha.net',
+      ].filter(Boolean).join(' '),
+
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https: http://127.0.0.1:8080 http://127.0.0.1:8081 http://localhost:8080 http://localhost:8081 http://localhost:3000",
       "font-src 'self' data:",
 
-      `connect-src ${connectSrc}`,
-      `frame-src ${frameSrc}`,
-      `child-src ${frameSrc}`,
-      "worker-src 'self' blob:",
+      [
+        "connect-src 'self'",
+        /*
+         * Browser now uses same-origin /backend-api.
+         * api.alemancenter.com remains allowed for Google OAuth/fallback/old clients.
+         */
+        'https://api.alemancenter.com',
+        'https://www.googletagmanager.com',
+        'https://www.google-analytics.com',
+        'https://analytics.google.com',
+        'https://stats.g.doubleclick.net',
+        'https://pagead2.googlesyndication.com',
+        'https://region1.google-analytics.com',
+        'https://region1.analytics.google.com',
+        'https://cdn-cookieyes.com',
+        'https://log.cookieyes.com',
+        'https://accounts.google.com',
+        'https://*.adtrafficquality.google',
+        'https://fundingchoicesmessages.google.com',
+        'https://www.google.com',
+        'https://www.recaptcha.net',
+        'https://csi.gstatic.com',
+        process.env.NODE_ENV === 'development'
+          ? 'http://localhost:* http://127.0.0.1:*'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+
+      [
+        'frame-src',
+        'https://googleads.g.doubleclick.net',
+        'https://tpc.googlesyndication.com',
+        'https://accounts.google.com',
+        'https://*.adtrafficquality.google',
+        'https://fundingchoicesmessages.google.com',
+        'https://www.google.com',
+        'https://www.recaptcha.net',
+      ].join(' '),
 
       "object-src 'none'",
       "base-uri 'self'",

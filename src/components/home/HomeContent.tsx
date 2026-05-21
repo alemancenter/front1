@@ -28,6 +28,8 @@ const HomeAds = dynamic(() => import('./HomeAds'), {
 type TrendingCandidate = {
   label: string;
   score: number;
+  href: string;
+  resultsCount?: number;
 };
 
 function cleanTrendingLabel(value: unknown) {
@@ -41,65 +43,51 @@ function cleanTrendingLabel(value: unknown) {
   return text.split(' ').slice(0, 4).join(' ');
 }
 
-function extractKeywordLabels(value: unknown) {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => cleanTrendingLabel(typeof item === 'string' ? item : (item as { keyword?: unknown } | null)?.keyword))
-      .filter(Boolean);
-  }
-
-  return String(value || '')
-    .split(/[,،\n\r]+/g)
-    .map(cleanTrendingLabel)
-    .filter(Boolean);
-}
-
 function buildTrendingSearches({
+  country,
   articles = [],
   posts = [],
-  categories = [],
-  classes = [],
-}: Pick<HomeContentProps, 'articles' | 'posts' | 'categories' | 'classes'>) {
+}: Pick<HomeContentProps, 'country' | 'articles' | 'posts'>) {
   const candidates: TrendingCandidate[] = [];
+  const countryCode = country?.code || 'jo';
 
   articles.forEach((article) => {
+    if (!article?.id || !article?.title) return;
+    const label = cleanTrendingLabel(article.title);
+    if (!label) return;
+
     const score = Number(article.visit_count || article.views || article.downloads || 0);
-    extractKeywordLabels(article.keywords).forEach((label) => candidates.push({ label, score: score + 20 }));
-    candidates.push({ label: cleanTrendingLabel(article.title), score: score + 10 });
+    candidates.push({
+      label,
+      score: score + 100,
+      href: `/${countryCode}/lesson/articles/${article.id}`,
+      resultsCount: 1,
+    });
   });
 
   posts.forEach((post) => {
+    if (!post?.id || !post?.title) return;
+    const label = cleanTrendingLabel(post.title);
+    if (!label) return;
+
     const score = Number(post.views_count || post.views || 0);
-    extractKeywordLabels(post.keywords).forEach((label) => candidates.push({ label, score: score + 20 }));
-    candidates.push({ label: cleanTrendingLabel(post.title), score: score + 10 });
-  });
-
-  categories.forEach((category) => {
     candidates.push({
-      label: cleanTrendingLabel(category.name),
-      score: Number(category.news_count || 0) + 5,
+      label,
+      score: score + 100,
+      href: `/${countryCode}/posts/${post.id}`,
+      resultsCount: 1,
     });
   });
 
-  classes.forEach((schoolClass) => {
-    candidates.push({
-      label: cleanTrendingLabel(schoolClass.grade_name),
-      score: Number(schoolClass.subjects?.length || 0),
-    });
-  });
-
-  const byLabel = new Map<string, TrendingCandidate>();
+  const byHref = new Map<string, TrendingCandidate>();
   candidates.forEach((candidate) => {
-    if (!candidate.label) return;
-    const key = candidate.label.toLocaleLowerCase('ar');
-    const current = byLabel.get(key);
-    if (!current || candidate.score > current.score) byLabel.set(key, candidate);
+    const current = byHref.get(candidate.href);
+    if (!current || candidate.score > current.score) byHref.set(candidate.href, candidate);
   });
 
-  return Array.from(byLabel.values())
+  return Array.from(byHref.values())
     .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, 'ar'))
-    .slice(0, 5)
-    .map((candidate) => candidate.label);
+    .slice(0, 5);
 }
 
 export default function HomeContent({
@@ -118,8 +106,8 @@ export default function HomeContent({
   const showHeroButtons = !isLoggedIn && !isAuthenticated;
   const resolvedSiteName = (initialSiteName || siteName || 'موقع الألمان').toString().trim();
   const trendingSearches = useMemo(
-    () => buildTrendingSearches({ articles, posts, categories, classes }),
-    [articles, posts, categories, classes]
+    () => buildTrendingSearches({ country, articles, posts }),
+    [country, articles, posts]
   );
 
   const [isMounted, setIsMounted] = useState(false);

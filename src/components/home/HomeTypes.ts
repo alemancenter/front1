@@ -6,6 +6,12 @@ export type HomeCountry = {
   name: string;
 };
 
+export type HomeTrendingSearch = {
+  label: string;
+  href: string;
+  resultsCount?: number;
+};
+
 export type HomeAdSettings = {
   googleAdsDesktop: string;
   googleAdsMobile: string;
