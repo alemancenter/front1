@@ -6,6 +6,7 @@ import ThemeInitializer from '@/components/ThemeInitializer';
 // import ResourcePreloader from '@/components/common/ResourcePreloader';
 import { getStorageUrl } from '@/lib/utils';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import DeferredMarketingTags from '@/components/performance/DeferredMarketingTags';
 import { getFrontSettings } from '@/lib/front-settings';
 import { FrontSettingsProvider } from '@/components/front-settings/FrontSettingsProvider';
 import StoreHydration from '@/components/StoreHydration';
@@ -165,12 +166,6 @@ export default async function RootLayout({
             {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':500});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`}
           </Script>
         )}
-        {/* Google Tag Manager */}
-        {marketingEnabled && gtmId && (
-          <Script id="google-tag-manager" strategy="lazyOnload">
-            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`}
-          </Script>
-        )}
         {/* AdSense ownership verification */}
         {normalizedAdsenseClient && (
           <meta name="google-adsense-account" content={normalizedAdsenseClient} />
@@ -196,15 +191,6 @@ export default async function RootLayout({
             strategy="lazyOnload"
           />
         )}
-        {/* AdSense — lazyOnload so it never blocks FCP/LCP */}
-        {marketingEnabled && normalizedAdsenseClient && (
-          <Script
-            id="adsense"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${normalizedAdsenseClient}`}
-            crossOrigin="anonymous"
-            strategy="lazyOnload"
-          />
-        )}
         {/* Google Tag Manager (noscript) */}
         {marketingEnabled && gtmId && (
           <noscript>
@@ -218,6 +204,11 @@ export default async function RootLayout({
         )}
         <FrontSettingsProvider settings={settings}>
           <StoreHydration />
+          <DeferredMarketingTags
+            enabled={marketingEnabled}
+            gtmId={gtmId}
+            adsenseClient={normalizedAdsenseClient}
+          />
           <GoogleAnalytics gaId={marketingEnabled && shouldLoadStandaloneGa ? gaId : ''} />
           <ThemeInitializer />
           <ToastProvider />

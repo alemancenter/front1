@@ -424,6 +424,10 @@ const nextConfig: NextConfig = {
         headers: longStaticCacheHeaders,
       },
       {
+        source: '/fonts/:path*',
+        headers: longStaticCacheHeaders,
+      },
+      {
         source: '/storage/:path*',
         headers: longStaticCacheHeaders,
       },

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { Metadata } from 'next';
+import { preload } from 'react-dom';
 import { COUNTRIES } from '@/lib/api/config';
 import HomeContent from '@/components/home/HomeContent';
 import { getStorageUrl, safeJsonLd } from '@/lib/utils';
@@ -89,6 +90,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  preload('/assets/img/home/premium-education-hero-mobile.avif', {
+    as: 'image',
+    type: 'image/avif',
+    media: '(max-width: 767px)',
+  });
+  preload('/assets/img/home/premium-education-hero-desktop.avif', {
+    as: 'image',
+    type: 'image/avif',
+    media: '(min-width: 768px)',
+  });
   const cookieStore = await cookies();
   const countryId = cookieStore.get('country_id')?.value || '1';
   const token = cookieStore.get('token')?.value;
