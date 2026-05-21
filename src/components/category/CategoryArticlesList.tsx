@@ -100,7 +100,7 @@ export default async function CategoryArticlesList({
         </div>
         <h3 className="mb-2 text-2xl font-black text-slate-950">لا توجد محتويات حالياً</h3>
         <p className="mx-auto max-w-md text-sm leading-7 text-slate-500">لم يتم إضافة أي ملفات أو مقالات في هذا القسم بعد. يمكنك العودة لاحقاً أو استخدام البحث للوصول إلى محتوى مشابه.</p>
-        <Link href="/search" prefetch={false} prefetch={false} className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-6 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800">
+        <Link href="/search" prefetch={false} className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-6 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800">
           <Search className="h-4 w-4" />
           بحث متقدم
         </Link>

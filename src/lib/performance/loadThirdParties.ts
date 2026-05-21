@@ -36,7 +36,7 @@ export function runAfterIdle(callback: () => void, timeout = 2500) {
       return;
     }
 
-    window.setTimeout(callback, timeout);
+    globalThis.setTimeout(callback, timeout);
   };
 
   if (document.readyState === 'complete') {
@@ -51,12 +51,14 @@ export function runOnFirstInteraction(callback: () => void, fallbackDelay = 3500
   if (typeof window === 'undefined') return;
 
   let didRun = false;
-  let fallbackTimer: number | undefined;
   const events: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+  const fallbackTimerRef: { current?: ReturnType<typeof globalThis.setTimeout> } = {};
 
   const cleanup = () => {
     events.forEach((eventName) => window.removeEventListener(eventName, run));
-    if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+    if (fallbackTimerRef.current !== undefined) {
+      globalThis.clearTimeout(fallbackTimerRef.current);
+    }
   };
 
   const run = () => {
@@ -66,6 +68,6 @@ export function runOnFirstInteraction(callback: () => void, fallbackDelay = 3500
     callback();
   };
 
+  fallbackTimerRef.current = globalThis.setTimeout(run, fallbackDelay);
   events.forEach((eventName) => window.addEventListener(eventName, run, { once: true, passive: true }));
-  fallbackTimer = window.setTimeout(run, fallbackDelay);
 }
