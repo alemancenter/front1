@@ -282,7 +282,7 @@ export default function CalendarPage() {
         </div>
         <div className="flex items-center gap-3">
             <div className="w-40">
-                <Select
+                <Select name="field-app-dashboard-calendar-page-8863-1"
                     label=""
                     value={selectedDatabase}
                     onChange={(e) => setSelectedDatabase(e.target.value)}
@@ -500,19 +500,19 @@ export default function CalendarPage() {
         title={isEditing ? 'تعديل الحدث' : 'إضافة حدث جديد'}
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-calendar-page-18757-2"
             label="عنوان الحدث"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             placeholder="مثال: اجتماع الفريق"
           />
-          <Input
+          <Input name="field-app-dashboard-calendar-page-18982-3"
             label="التاريخ"
             type="date"
             value={formData.start_date}
             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
           />
-          <Select
+          <Select name="field-app-dashboard-calendar-page-19191-4"
             label="قاعدة البيانات"
             value={formData.database}
             onChange={(e) => setFormData({ ...formData, database: e.target.value })}

@@ -159,6 +159,8 @@ export default function PostsPage() {
     setConfirmDeleteId(id);
   };
 
+  const postViews = (post: Post | null | undefined) => Number(post?.views_count ?? post?.views ?? post?.view_count ?? 0);
+
   const filteredPosts = posts.filter(p => {
     const matchesStatus =
       !statusFilter ||
@@ -176,7 +178,7 @@ export default function PostsPage() {
     published: posts.filter(p => p.is_active).length, // Note: This is only for current page
     draft: posts.filter(p => !p.is_active).length, // Note: This is only for current page
     pending: 0,
-    totalViews: posts.reduce((sum, p) => sum + (p.views_count || 0), 0),
+    totalViews: posts.reduce((sum, p) => sum + postViews(p), 0),
   };
 
   const fetchPosts = useCallback(async (page = 1) => {
@@ -352,7 +354,7 @@ export default function PostsPage() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <CardTitle>قائمة المنشورات</CardTitle>
           <div className="flex items-center gap-3">
-            <Select
+            <Select name="field-app-dashboard-posts-page-12218-1"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               options={statusOptions}

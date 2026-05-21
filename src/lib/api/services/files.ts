@@ -10,6 +10,33 @@ type FileFilters = Record<string, string | number | boolean | undefined> & {
   per_page?: number;
 };
 
+function toCounter(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
+  if (typeof value === 'string') {
+    const normalized = value.replace(/[^0-9.-]/g, '');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  }
+  return 0;
+}
+
+function normalizeFileViews(file: FileAttachment): FileAttachment {
+  const raw = file as FileAttachment & { view_count?: unknown; views?: unknown; download_count?: unknown };
+  const views = Math.max(
+    toCounter(raw.views_count),
+    toCounter(raw.view_count),
+    toCounter(raw.views)
+  );
+  const downloads = toCounter(raw.download_count);
+  return {
+    ...file,
+    views_count: views,
+    view_count: views,
+    views,
+    download_count: downloads,
+  } as FileAttachment;
+}
+
 interface FileFormData {
   country: string;
   article_id: number;
@@ -26,7 +53,11 @@ export const filesService = {
       API_ENDPOINTS.FILES.LIST,
       filters
     );
-    return response.data as any;
+    const payload = response.data as unknown as PaginatedResponse<FileAttachment>;
+    return {
+      ...payload,
+      data: Array.isArray(payload.data) ? payload.data.map(normalizeFileViews) : [],
+    };
   },
 
   /**
@@ -37,7 +68,7 @@ export const filesService = {
       API_ENDPOINTS.FILES.SHOW(id),
       { country }
     );
-    return (response.data as any).data || response.data;
+    return normalizeFileViews(((response.data as any).data || response.data) as FileAttachment);
   },
 
   /**
@@ -54,7 +85,7 @@ export const filesService = {
       API_ENDPOINTS.FILES.STORE,
       formData
     );
-    return (response.data as any).data || response.data;
+    return normalizeFileViews(((response.data as any).data || response.data) as FileAttachment);
   },
 
   /**
@@ -79,7 +110,18 @@ export const filesService = {
       API_ENDPOINTS.FILES.UPDATE(id),
       formData
     );
-    return (response.data as any).data || response.data;
+    return normalizeFileViews(((response.data as any).data || response.data) as FileAttachment);
+  },
+
+  /**
+   * Increment file view counter and return normalized counters.
+   */
+  async incrementView(id: number | string, country: string = '1'): Promise<FileAttachment> {
+    const response = await apiClient.post<{ data: FileAttachment } | FileAttachment>(
+      API_ENDPOINTS.FILES.INCREMENT_VIEW(id),
+      { country }
+    );
+    return normalizeFileViews(((response.data as any).data || response.data) as FileAttachment);
   },
 
   /**

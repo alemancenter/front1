@@ -330,13 +330,13 @@ export default function PermissionsPage() {
         title={modal.mode === 'create' ? 'إضافة صلاحية جديدة' : 'تعديل الصلاحية'}
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-permissions-page-11219-1"
             label="اسم الصلاحية (بالإنجليزية)"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="مثال: manage articles"
           />
-          <Select
+          <Select name="field-app-dashboard-permissions-page-11459-2"
             label="الحارس (guard)"
             value={formData.guard_name}
             onChange={(e) => setFormData({ ...formData, guard_name: e.target.value })}

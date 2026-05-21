@@ -218,13 +218,13 @@ export default function SchoolClassesPage() {
         title={modal.mode === 'create' ? 'إضافة صف جديد' : 'تعديل الصف'}
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-school-classes-page-7523-1"
             label="اسم الصف"
             value={formData.grade_name}
             onChange={(e) => setFormData({ ...formData, grade_name: e.target.value })}
             placeholder="مثال: الصف الأول الابتدائي"
           />
-          <Select
+          <Select name="field-app-dashboard-school-classes-page-7762-2"
             label="المستوى"
             value={formData.grade_level || ''}
             onChange={(e) => setFormData({ ...formData, grade_level: Number(e.target.value) })}

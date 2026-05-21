@@ -5,9 +5,13 @@
   Place the WOFF2 files in: public/fonts/cairo/
   Required files:
   - Cairo-Regular.woff2  (400)
-  - Cairo-Medium.woff2   (500)
+  - Cairo-Regular.woff2  (400)
   - Cairo-SemiBold.woff2 (600)
   - Cairo-Bold.woff2     (700)
+
+  Note: font-weight 500 is intentionally synthesized by the browser from
+  the available Cairo faces. This prevents 404 errors when Cairo-Medium.woff2
+  is not uploaded to the server.
 */
 @font-face {
   font-family: "Cairo";
@@ -17,13 +21,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: "Cairo";
-  src: url("/fonts/cairo/Cairo-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
 
 @font-face {
   font-family: "Cairo";

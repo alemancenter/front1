@@ -12,7 +12,6 @@ Required filenames:
 
 ```txt
 Cairo-Regular.woff2
-Cairo-Medium.woff2
 Cairo-SemiBold.woff2
 Cairo-Bold.woff2
 ```
@@ -23,7 +22,7 @@ The font is declared in:
 src/app/globals.css
 ```
 
-Critical weights are preloaded in:
+Fonts are loaded on demand via @font-face in:
 
 ```txt
 src/app/layout.tsx

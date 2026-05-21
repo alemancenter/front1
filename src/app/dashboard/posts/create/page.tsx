@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import 'summernote/dist/summernote-lite.css';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { Save, FileText, Tag, Image as ImageIcon, Upload, Loader2, Sparkles } from 'lucide-react';
@@ -9,6 +8,8 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import RichTextEditor from '@/components/editor/RichTextEditor';
+import { uploadEditorFile, uploadEditorImage } from '@/lib/editor/uploads';
 import { postsService, categoriesService, articlesService, COUNTRIES } from '@/lib/api/services';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
@@ -20,9 +21,7 @@ export default function CreatePostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
   const router = useRouter();
 
-  const editorRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<string>('');
-  const [summernoteReady, setSummernoteReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<'1' | '2' | '3' | '4'>('1');
@@ -58,17 +57,6 @@ export default function CreatePostPage() {
     () => categories.map((c) => ({ value: c.id, label: c.name })),
     [categories]
   );
-
-  useEffect(() => {
-    (async () => {
-      const jquery = (await import('jquery')).default;
-      (window as any).$ = jquery;
-      (window as any).jQuery = jquery;
-      await import('summernote/dist/summernote-lite');
-      await import('summernote/dist/lang/summernote-ar-AR');
-      setSummernoteReady(true);
-    })();
-  }, []);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -111,168 +99,6 @@ export default function CreatePostPage() {
     }, 400);
     return () => clearTimeout(t);
   }, [formData.title, selectedCountry, isAuthorized]);
-
-  useEffect(() => {
-    if (!summernoteReady || !editorRef.current || isLoading) return;
-    const jq = (window as any).jQuery || (window as any).$;
-    if (!jq) return;
-    const el = jq(editorRef.current);
-    if (!el.data('summernote')) {
-      el.summernote({
-        height: 420,
-        minHeight: 240,
-        maxHeight: null,
-        placeholder: 'اكتب المحتوى هنا...',
-        lang: 'ar-AR',
-        fontSizes: ['10', '12', '14', '16', '18', '24', '36'],
-        buttons: {
-          fileUpload: function () {
-            const ui = (jq as any).summernote.ui;
-            return ui.button({
-              contents: '<span class="note-icon-link"></span>',
-              tooltip: 'رفع ملف',
-              click: async function () {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.onchange = async () => {
-                  const f = input.files && input.files[0];
-                  if (!f) return;
-                  const fd = new FormData();
-                  fd.append('file', f);
-                  try {
-                    const resp = await fetch('/api/upload/file', { method: 'POST', body: fd });
-                    const json = await resp.json();
-                    const url = (json as any).url ?? (json as any).data?.url;
-                    const name = (json as any).name ?? (json as any).data?.name ?? f.name;
-                    if (url) {
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.textContent = name;
-                      a.target = '_blank';
-                      el.summernote('insertNode', a);
-                    }
-                  } catch (err) {
-                    const info = extractError(err);
-                    if (info.status === 404) {
-                      try {
-                        const resp2 = await fetch('/api/upload/file', { method: 'POST', body: fd });
-                        const json2 = await resp2.json();
-                        const url2 = (json2 as any).url ?? (json2 as any).data?.url;
-                        const name2 = (json2 as any).name ?? (json2 as any).data?.name ?? f.name;
-                        if (url2) {
-                          const a = document.createElement('a');
-                          a.href = url2;
-                          a.textContent = name2;
-                          a.target = '_blank';
-                          el.summernote('insertNode', a);
-                      }
-                      return;
-                    } catch (e2) {
-                      console.error(e2);
-                    }
-                  }
-                }
-              };
-              input.click();
-            },
-          });
-        },
-        },
-        toolbar: [
-          ['style', ['style']],
-          ['font', ['bold', 'italic', 'underline', 'clear']],
-          ['fontname', ['fontname']],
-          ['fontsize', ['fontsize']],
-          ['color', ['color']],
-          ['para', ['ul', 'ol', 'paragraph']],
-          ['table', ['table']],
-          ['insert', ['link', 'picture', 'video', 'fileUpload']],
-          ['view', ['fullscreen', 'codeview', 'help']],
-        ],
-        popover: {
-          image: [
-            ['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
-            ['float', ['floatLeft', 'floatRight', 'floatNone']],
-            ['remove', ['removeMedia']],
-          ],
-          link: [
-            ['link', ['linkDialogShow', 'unlink']],
-          ],
-          table: [
-            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-          ],
-        },
-        styleTags: ['p', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4'],
-        fontNames: ['Cairo', 'Tajawal', 'Almarai', 'Arial', 'Helvetica', 'Times New Roman', 'Courier New'],
-        fontNamesIgnoreCheck: ['Cairo', 'Tajawal', 'Almarai'],
-        disableDragAndDrop: true,
-        dialogsInBody: true,
-        callbacks: {
-          onChange: (contents: string) => {
-            contentRef.current = contents;
-          },
-          onImageUpload: async (files: File[]) => {
-            if (!files || !files.length) return;
-            const file = files[0];
-            const fd = new FormData();
-            fd.append('file', file);
-            fd.append('width', '1920');
-            fd.append('quality', '85');
-            fd.append('convert_to_webp', 'true');
-            try {
-              const resp = await fetch('/api/upload/image', {
-                method: 'POST',
-                body: fd,
-                credentials: 'include'
-              });
-              const json = await resp.json();
-              if (!resp.ok) {
-                throw new Error(json.message || 'فشل رفع الصورة');
-              }
-              const url = json?.data?.url ?? json?.url;
-              console.log('[Upload] Response:', json, 'URL:', url);
-              if (url) {
-                // Create image element and insert it
-                const $img = jq('<img>').attr({
-                  src: url,
-                  alt: file.name
-                }).css({
-                  'max-width': '100%',
-                  'height': 'auto'
-                });
-                el.summernote('insertNode', $img[0]);
-                console.log('[Upload] Image inserted successfully');
-              } else {
-                console.error('No URL returned from upload', json);
-              }
-            } catch (err) {
-              console.error('Upload image error', err);
-            }
-          },
-        },
-      });
-
-      const noteEditor = el.next('.note-editor');
-      noteEditor.find('.note-toolbar').attr('dir', 'rtl').css('direction', 'rtl');
-      noteEditor.find('.note-btn-group').css('direction', 'ltr');
-      const editable = noteEditor.find('.note-editable');
-      editable.attr('dir', 'rtl');
-      editable.css('font-family', 'Cairo, Tajawal, Almarai, sans-serif');
-      editable.css('text-align', 'right');
-      editable.css('direction', 'rtl');
-      noteEditor.find('.dropdown-menu').css('text-align', 'right');
-    }
-
-    const currentRef = editorRef.current;
-    return () => {
-      try {
-        if (currentRef) {
-          (window as any).jQuery(currentRef).summernote('destroy');
-        }
-      } catch {}
-    };
-  }, [summernoteReady, isLoading]);
 
   useEffect(() => {
     if (!isGeneratingAi) { setAiElapsedSeconds(0); return; }
@@ -325,13 +151,10 @@ export default function CreatePostPage() {
 
       if (content) {
         contentRef.current = content;
-        const jq = (window as any).jQuery || (window as any).$;
-        if (jq && editorRef.current) {
-          jq(editorRef.current).summernote('code', content);
-        }
 
         setFormData((prev) => ({
           ...prev,
+          content,
           ...(!prev.meta_description?.trim() && article.meta_description
             ? { meta_description: article.meta_description }
             : {}),
@@ -407,7 +230,7 @@ export default function CreatePostPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Select
+          <Select name="field-app-dashboard-posts-create-page-14903-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value as '1' | '2' | '3' | '4')}
             options={COUNTRIES.map((c) => ({ value: c.id, label: c.name }))}
@@ -473,7 +296,7 @@ export default function CreatePostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Input
+              <Input name="field-app-dashboard-posts-create-page-17368-2"
                 label="عنوان المنشور"
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
@@ -515,7 +338,19 @@ export default function CreatePostPage() {
 
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>
-                <div ref={editorRef} id="summernote" className="w-full bg-card" />
+                <RichTextEditor
+                  id="post-content"
+                  name="content"
+                  value={formData.content || ''}
+                  placeholder="اكتب المحتوى هنا..."
+                  minHeight={420}
+                  onChange={(html) => {
+                    contentRef.current = html;
+                    setFormData((prev) => ({ ...prev, content: html }));
+                  }}
+                  onImageUpload={uploadEditorImage}
+                  onFileUpload={uploadEditorFile}
+                />
               </div>
             </CardContent>
           </Card>
@@ -528,19 +363,19 @@ export default function CreatePostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Select
+              <Select name="field-app-dashboard-posts-create-page-19965-3"
                 label="الفئة"
                 value={formData.category_id}
                 onChange={(e) => setFormData((prev) => ({ ...prev, category_id: Number((e.target as any).value) }))}
                 options={categoryOptions}
               />
-              <Input
+              <Input name="field-app-dashboard-posts-create-page-20238-4"
                 label="الوصف التعريفي"
                 value={formData.meta_description || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
                 placeholder="وصف قصير يظهر لمحركات البحث (اختياري)"
               />
-              <Input
+              <Input name="field-app-dashboard-posts-create-page-20544-5"
                 label="الكلمات المفتاحية"
                 value={formData.keywords || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}

@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from '@/lib/motion-lite';
 import {
   Search,
@@ -306,9 +306,42 @@ export default function FilesPage() {
   };
 
   const totalSize = useMemo(() => files.reduce((sum, f) => sum + (f?.file_size || 0), 0), [files]);
-  const totalViews = useMemo(() => files.reduce((sum, f) => sum + (f?.views_count || 0), 0), [files]);
-  const totalDownloads = useMemo(() => files.reduce((sum, f) => sum + (f?.download_count || 0), 0), [files]);
+  const toCounter = useCallback((value: unknown) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/[^0-9.-]/g, ''));
+      return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    }
+    return 0;
+  }, []);
+
+  const fileViews = useCallback((file: FileItem | null | undefined) => Math.max(
+    toCounter(file?.views_count),
+    toCounter(file?.view_count),
+    toCounter(file?.views)
+  ), [toCounter]);
+
+  const fileDownloads = useCallback((file: FileItem | null | undefined) => toCounter(file?.download_count), [toCounter]);
+
+  const totalViews = useMemo(() => files.reduce((sum, f) => sum + fileViews(f), 0), [files, fileViews]);
+  const totalDownloads = useMemo(() => files.reduce((sum, f) => sum + fileDownloads(f), 0), [files, fileDownloads]);
   const downloadUrl = (id: number) => `${API_CONFIG.BASE_URL}${API_ENDPOINTS.FILES.DOWNLOAD(id)}`;
+
+  const openPreview = async (file: FileItem) => {
+    setPreviewFile(file);
+    try {
+      const updated = await filesService.incrementView(file.id, '1');
+      setFiles((prev) => prev.map((item) => item.id === file.id ? { ...item, ...updated } as FileItem : item));
+      setPreviewFile((current) => current?.id === file.id ? { ...current, ...updated } as FileItem : current);
+    } catch {
+      // Preview must remain usable even if analytics counting fails.
+    }
+  };
+
+  const openDownload = (file: FileItem) => {
+    window.open(downloadUrl(file.id), '_blank');
+    setTimeout(() => { void fetchFiles(pagination.current_page); }, 1200);
+  };
 
   const categories = DEFAULT_CATEGORIES;
 
@@ -508,25 +541,25 @@ export default function FilesPage() {
                       <p className="font-medium text-sm truncate w-full mb-1">{file.file_name}</p>
                       <p className="text-xs text-muted-foreground">{formatFileSize(file.file_size || 0)}</p>
                       <div className="mt-2 flex items-center justify-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                           <Eye className="w-3 h-3" />
-                          {(file.views_count || 0).toLocaleString('ar-EG')}
+                          مشاهدات: {fileViews(file).toLocaleString('ar-EG')}
                         </span>
                         <span className="flex items-center gap-1">
                           <Download className="w-3 h-3" />
-                          {(file.download_count || 0).toLocaleString('ar-EG')}
+                          {fileDownloads(file).toLocaleString('ar-EG')}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center justify-center gap-2 mt-4">
                       <button
-                        onClick={(e) => { e.stopPropagation(); setPreviewFile(file); }}
+                        onClick={(e) => { e.stopPropagation(); void openPreview(file); }}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                       >
                         <Eye className="w-4 h-4 text-muted-foreground" />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); window.open(downloadUrl(file.id), '_blank'); }}
+                        onClick={(e) => { e.stopPropagation(); openDownload(file); }}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                       >
                         <Download className="w-4 h-4 text-muted-foreground" />
@@ -571,24 +604,24 @@ export default function FilesPage() {
                     </div>
                     <div className="text-sm text-muted-foreground">{formatFileSize(file.file_size || 0)}</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-3">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                         <Eye className="w-3 h-3" />
-                        {(file.views_count || 0).toLocaleString('ar-EG')}
+                        مشاهدات: {fileViews(file).toLocaleString('ar-EG')}
                       </span>
                       <span className="flex items-center gap-1">
                         <Download className="w-3 h-3" />
-                        {(file.download_count || 0).toLocaleString('ar-EG')}
+                        {fileDownloads(file).toLocaleString('ar-EG')}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={(e) => { e.stopPropagation(); setPreviewFile(file); }}
+                        onClick={(e) => { e.stopPropagation(); void openPreview(file); }}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                       >
                         <Eye className="w-4 h-4 text-muted-foreground" />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); window.open(downloadUrl(file.id), '_blank'); }}
+                        onClick={(e) => { e.stopPropagation(); openDownload(file); }}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                       >
                         <Download className="w-4 h-4 text-muted-foreground" />
@@ -699,18 +732,18 @@ export default function FilesPage() {
               </div>
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-muted-foreground">المشاهدات</span>
-                <span>{(previewFile.views_count || 0).toLocaleString('ar-EG')}</span>
+                <span>{fileViews(previewFile).toLocaleString('ar-EG')}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-border">
                 <span className="text-muted-foreground">التنزيلات</span>
-                <span>{(previewFile.download_count || 0).toLocaleString('ar-EG')}</span>
+                <span>{fileDownloads(previewFile).toLocaleString('ar-EG')}</span>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 pt-6">
               <Button variant="outline" onClick={() => setPreviewFile(null)}>
                 إغلاق
               </Button>
-              <Button leftIcon={<Download className="w-4 h-4" />} onClick={() => window.open(downloadUrl(previewFile.id), '_blank')}>
+              <Button leftIcon={<Download className="w-4 h-4" />} onClick={() => openDownload(previewFile)}>
                 تحميل
               </Button>
             </div>

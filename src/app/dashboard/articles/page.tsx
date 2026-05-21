@@ -109,6 +109,8 @@ export default function ArticlesPage() {
     return COUNTRIES.find(c => c.id === selectedCountry)?.name || 'غير محدد';
   };
 
+  const articleViews = (article: Article | null | undefined) => Number(article?.views ?? article?.visit_count ?? (article as any)?.view_count ?? (article as any)?.views_count ?? 0);
+
   const fetchStats = useCallback(async () => {
     try {
       const stats = await articlesService.getStats(selectedCountry);
@@ -388,7 +390,7 @@ export default function ArticlesPage() {
                       </span>
                       <span className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-md">
                         <Eye size={12} />
-                        {article.views || 0}
+                        {articleViews(article).toLocaleString('ar-EG')}
                       </span>
                     </div>
 
@@ -492,7 +494,7 @@ export default function ArticlesPage() {
                         {toCountryName(article.country_id)}
                       </td>
                       <td className="py-4 px-6 text-sm text-muted-foreground">
-                        {article.views || 0}
+                        {articleViews(article).toLocaleString('ar-EG')}
                       </td>
                       <td className="py-4 px-6 text-sm text-muted-foreground">
                         {article.created_at ? new Date(article.created_at).toLocaleDateString('en-GB') : '-'}

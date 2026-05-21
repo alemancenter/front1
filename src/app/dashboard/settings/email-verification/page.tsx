@@ -211,7 +211,7 @@ export default function EmailVerificationDashboardPage() {
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+              <Input name="field-app-dashboard-settings-email-verification-page-6895-1"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="بحث بالاسم أو البريد"

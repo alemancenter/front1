@@ -120,6 +120,136 @@ export interface ContentAIFixPreview {
   updated_at?: string;
 }
 
+
+export type ContentQualityBatchStatus = 'queued' | 'running' | 'cancelling' | 'completed' | 'failed' | 'cancelled' | string;
+export type ContentQualityBatchMode = 'analyze_only' | 'fix_preview' | 'full_review';
+export type ContentQualityModelStrategy = 'economy' | 'balanced' | 'quality' | 'final_review';
+export type ContentQualityBatchSource = 'adsense_readiness' | 'manual_filter';
+export type ContentQualitySmartPreset = 'weak_first' | 'indexed_weak' | 'short_file_pages' | 'custom_filter';
+
+export interface ContentQualityBatchItem {
+  content_type: 'article' | 'post' | string;
+  content_id: number;
+  country_code: string;
+  title: string;
+  url: string;
+  status: ContentQualityBatchStatus;
+  score_before: number;
+  score_after?: number;
+  decision_id?: number | null;
+  fix_preview_id?: number | null;
+  message?: string;
+  error?: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+}
+
+export interface ContentQualityBatchJob {
+  id: string;
+  status: ContentQualityBatchStatus;
+  mode: ContentQualityBatchMode | string;
+  model_strategy: ContentQualityModelStrategy | string;
+  country_code: string;
+  content_type: 'all' | 'article' | 'post' | string;
+  level: 'weak' | 'review' | 'ready' | string;
+  q?: string;
+  source?: ContentQualityBatchSource | string;
+  preset?: ContentQualitySmartPreset | string;
+  limit: number;
+  concurrency: number;
+  total_items: number;
+  processed_items: number;
+  successful_items: number;
+  failed_items: number;
+  pending_items: number;
+  progress: number;
+  cancel_requested: boolean;
+  error?: string;
+  created_at: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  items?: ContentQualityBatchItem[];
+}
+
+
+export interface ContentAIReviewQueueItem {
+  id: number;
+  decision_id: number;
+  content_type: string;
+  content_id: string;
+  country_code: string;
+  original_title: string;
+  fixed_title: string;
+  fix_summary?: string;
+  status: AIFixStatus;
+  score?: number;
+  decision?: string;
+  adsense_risk?: string;
+  model?: string;
+  model_strategy?: string;
+  processing_time_ms?: number;
+  applied_at?: string | null;
+  rejected_at?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ContentAIModelCostSummary {
+  total_runs: number;
+  success_runs: number;
+  failed_runs: number;
+  input_tokens: number;
+  output_tokens: number;
+  estimated_cost_usd: number;
+  avg_duration_ms: number;
+}
+
+export interface ContentAIModelCostByModel {
+  model: string;
+  model_strategy: string;
+  task_type: string;
+  runs: number;
+  success_runs: number;
+  failed_runs: number;
+  input_tokens: number;
+  output_tokens: number;
+  estimated_cost_usd: number;
+  avg_duration_ms: number;
+}
+
+export interface ContentAIModelCostResponse {
+  summary: ContentAIModelCostSummary;
+  models: ContentAIModelCostByModel[];
+}
+
+export interface ContentQualityBatchPayload {
+  country_code?: string;
+  content_type?: 'all' | 'article' | 'post';
+  level?: 'weak' | 'review' | 'ready';
+  q?: string;
+  source?: ContentQualityBatchSource;
+  preset?: ContentQualitySmartPreset;
+  limit?: number;
+  concurrency?: number;
+  mode?: ContentQualityBatchMode;
+  model_strategy?: ContentQualityModelStrategy;
+}
+
+
+export interface AdsenseReadinessSummaryForQuality {
+  total: number;
+  ready: number;
+  review: number;
+  weak: number;
+  no_index: number;
+  ads_eligible: number;
+}
+
+export interface AdsenseReadinessQuickReport {
+  summary: AdsenseReadinessSummaryForQuality;
+  meta?: { total?: number; filtered_total?: number };
+}
+
 export interface AIAnalyzePayload {
   run_id?: number;
   finding_id?: number;
@@ -256,6 +386,50 @@ export const contentAuditService = {
       note: note || '',
     });
     return unwrapData<ContentAIFixPreview>(response);
+  },
+
+
+  async getAdsenseReadinessQuickReport(params?: { country?: string; type?: string; level?: string }): Promise<AdsenseReadinessQuickReport> {
+    const response = await apiClient.get(
+      API_ENDPOINTS.CONTENT_AUDIT.ADSENSE_READINESS,
+      { country: params?.country || 'jo', type: params?.type || 'all', level: params?.level || 'all', page: 1, per_page: 1 },
+      { cache: 'no-store' }
+    );
+    const data = unwrapData<any>(response) || {};
+    return {
+      summary: data.summary || { total: 0, ready: 0, review: 0, weak: 0, no_index: 0, ads_eligible: 0 },
+      meta: data.meta,
+    };
+  },
+
+  async startQualityBatch(payload: ContentQualityBatchPayload): Promise<ContentQualityBatchJob> {
+    const response = await apiClient.post(API_ENDPOINTS.CONTENT_AUDIT.AI_BATCH_JOBS, payload, { retries: 0, timeout: 70000 });
+    return unwrapData<ContentQualityBatchJob>(response);
+  },
+
+  async listQualityBatches(): Promise<ContentQualityBatchJob[]> {
+    const response = await apiClient.get(API_ENDPOINTS.CONTENT_AUDIT.AI_BATCH_JOBS, undefined, { cache: 'no-store' });
+    return unwrapData<ContentQualityBatchJob[]>(response) || [];
+  },
+
+  async getQualityBatch(id: string | number): Promise<ContentQualityBatchJob> {
+    const response = await apiClient.get(API_ENDPOINTS.CONTENT_AUDIT.AI_BATCH_JOB(id), undefined, { cache: 'no-store' });
+    return unwrapData<ContentQualityBatchJob>(response);
+  },
+
+  async cancelQualityBatch(id: string | number): Promise<ContentQualityBatchJob> {
+    const response = await apiClient.post(API_ENDPOINTS.CONTENT_AUDIT.AI_BATCH_JOB_CANCEL(id));
+    return unwrapData<ContentQualityBatchJob>(response);
+  },
+
+  async listReviewQueue(params?: { page?: number; per_page?: number; status?: string; content_type?: string; q?: string }): Promise<PaginatedResult<ContentAIReviewQueueItem>> {
+    const response = await apiClient.get(API_ENDPOINTS.CONTENT_AUDIT.AI_REVIEW_QUEUE, params, { cache: 'no-store' });
+    return unwrapPaginated<ContentAIReviewQueueItem>(response);
+  },
+
+  async getModelCosts(params?: { days?: number }): Promise<ContentAIModelCostResponse> {
+    const response = await apiClient.get(API_ENDPOINTS.CONTENT_AUDIT.AI_MODEL_COSTS, params, { cache: 'no-store' });
+    return unwrapData<ContentAIModelCostResponse>(response);
   },
 
   async downloadCsv(runId: number | string): Promise<void> {

@@ -306,7 +306,7 @@ export default function EmailBouncePage() {
           <div className="mb-4 flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
+              <Input name="field-app-dashboard-settings-email-bounce-page-10030-1"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
                 placeholder="بحث بالبريد الإلكتروني..."
@@ -499,7 +499,7 @@ export default function EmailBouncePage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   عنوان الارتداد (MAIL_BOUNCE_ADDRESS)
                 </label>
-                <Input
+                <Input name="field-app-dashboard-settings-email-bounce-page-18681-2"
                   value={cfg.mail_bounce_address}
                   onChange={e => setCfg(p => ({ ...p, mail_bounce_address: e.target.value }))}
                   placeholder="bounce@alemancenter.com"
@@ -515,7 +515,7 @@ export default function EmailBouncePage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   خادم IMAP (BOUNCE_IMAP_HOST)
                 </label>
-                <Input
+                <Input name="field-app-dashboard-settings-email-bounce-page-19353-3"
                   value={cfg.bounce_imap_host}
                   onChange={e => setCfg(p => ({ ...p, bounce_imap_host: e.target.value }))}
                   placeholder="mail.alemancenter.com"
@@ -528,7 +528,7 @@ export default function EmailBouncePage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   المنفذ (BOUNCE_IMAP_PORT)
                 </label>
-                <Input
+                <Input name="field-app-dashboard-settings-email-bounce-page-19842-4"
                   value={cfg.bounce_imap_port}
                   onChange={e => setCfg(p => ({ ...p, bounce_imap_port: e.target.value }))}
                   placeholder="993"
@@ -541,7 +541,7 @@ export default function EmailBouncePage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   اسم المستخدم (BOUNCE_IMAP_USERNAME)
                 </label>
-                <Input
+                <Input name="field-app-dashboard-settings-email-bounce-page-20327-5"
                   value={cfg.bounce_imap_username}
                   onChange={e => setCfg(p => ({ ...p, bounce_imap_username: e.target.value }))}
                   placeholder="bounce@alemancenter.com"
@@ -554,7 +554,7 @@ export default function EmailBouncePage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   كلمة المرور (BOUNCE_IMAP_PASSWORD)
                 </label>
-                <Input
+                <Input name="field-app-dashboard-settings-email-bounce-page-20839-6"
                   type="password"
                   value={cfg.bounce_imap_password}
                   onChange={e => setCfg(p => ({ ...p, bounce_imap_password: e.target.value }))}

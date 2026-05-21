@@ -343,7 +343,7 @@ export default function RedisPage() {
                 <div className="flex justify-between items-center">
                   <CardTitle>Cache Keys</CardTitle>
                   <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-2">
-                    <Input
+                    <Input name="field-app-dashboard-redis-page-11486-1"
                       placeholder="Search keys..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -457,7 +457,7 @@ export default function RedisPage() {
                 <form onSubmit={handleUpdateEnv} className="space-y-4 max-w-lg">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Redis Host</label>
-                    <Input 
+                    <Input name="field-app-dashboard-redis-page-16570-2" 
                       value={envSettings.REDIS_HOST}
                       onChange={(e) => setEnvSettings({...envSettings, REDIS_HOST: e.target.value})}
                       placeholder="127.0.0.1"
@@ -465,7 +465,7 @@ export default function RedisPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Redis Port</label>
-                    <Input 
+                    <Input name="field-app-dashboard-redis-page-16970-3" 
                       value={envSettings.REDIS_PORT}
                       onChange={(e) => setEnvSettings({...envSettings, REDIS_PORT: e.target.value})}
                       placeholder="6379"
@@ -473,7 +473,7 @@ export default function RedisPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Redis Password</label>
-                    <Input 
+                    <Input name="field-app-dashboard-redis-page-17369-4" 
                       type="password"
                       value={envSettings.REDIS_PASSWORD}
                       onChange={(e) => setEnvSettings({...envSettings, REDIS_PASSWORD: e.target.value})}
@@ -482,7 +482,7 @@ export default function RedisPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Redis DB</label>
-                    <Input 
+                    <Input name="field-app-dashboard-redis-page-17812-5" 
                       value={envSettings.REDIS_DB}
                       onChange={(e) => setEnvSettings({...envSettings, REDIS_DB: e.target.value})}
                       placeholder="0"
@@ -507,7 +507,7 @@ export default function RedisPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Key</label>
-            <Input 
+            <Input name="field-app-dashboard-redis-page-18613-6" 
               value={newKeyData.key}
               onChange={(e) => setNewKeyData({...newKeyData, key: e.target.value})}
               placeholder="my_key"
@@ -515,7 +515,7 @@ export default function RedisPage() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Value</label>
-            <Input 
+            <Input name="field-app-dashboard-redis-page-18924-7" 
               value={newKeyData.value}
               onChange={(e) => setNewKeyData({...newKeyData, value: e.target.value})}
               placeholder="some value"
@@ -523,7 +523,7 @@ export default function RedisPage() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">TTL (Seconds)</label>
-            <Input 
+            <Input name="field-app-dashboard-redis-page-19251-8" 
               type="number"
               value={newKeyData.ttl}
               onChange={(e) => setNewKeyData({...newKeyData, ttl: e.target.value})}

@@ -136,7 +136,7 @@ export default function ModernDataTable({
           {showSearch && (
             <div className="relative">
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
+              <Input name="field-components-dashboard-moderndatatable-3844-1"
                 aria-label={`بحث في ${title}`}
                 placeholder="بحث..."
                 value={searchTerm}

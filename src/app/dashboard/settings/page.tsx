@@ -495,39 +495,39 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-16867-1"
                       label="اسم الموقع"
                       value={settings.site_name || ''}
                       onChange={(e) => updateSetting('site_name', e.target.value)}
                       placeholder="أدخل اسم الموقع"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-17148-2"
                       label="البريد الإلكتروني للموقع"
                       type="email"
                       value={settings.site_email || ''}
                       onChange={(e) => updateSetting('site_email', e.target.value)}
                       placeholder="admin@example.com"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-17482-3"
                       label="لغة الموقع"
                       value={settings.site_language || 'ar'}
                       onChange={(e) => updateSetting('site_language', e.target.value)}
                       placeholder="ar"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-17760-4"
                       label="المنطقة الزمنية"
                       value={settings.timezone || 'Asia/Amman'}
                       onChange={(e) => updateSetting('timezone', e.target.value)}
                       placeholder="Asia/Amman"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-18049-5"
                       label="رابط الموقع"
                       value={settings.site_url || ''}
                       onChange={(e) => updateSetting('site_url', e.target.value)}
                       placeholder="https://example.com"
                     />
                   </div>
-                  <Textarea
+                  <Textarea name="field-app-dashboard-settings-page-18356-6"
                     label="وصف الموقع"
                     value={settings.site_description || ''}
                     onChange={(e) => updateSetting('site_description', e.target.value)}
@@ -553,21 +553,21 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-19345-7"
                       label="البريد الإلكتروني للتواصل"
                       type="email"
                       value={settings.contact_email || ''}
                       onChange={(e) => updateSetting('contact_email', e.target.value)}
                       placeholder="contact@example.com"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-19688-8"
                       label="رقم الهاتف"
                       value={settings.contact_phone || ''}
                       onChange={(e) => updateSetting('contact_phone', e.target.value)}
                       placeholder="+962 7xx xxx xxx"
                     />
                   </div>
-                  <Textarea
+                  <Textarea name="field-app-dashboard-settings-page-20001-9"
                     label="العنوان"
                     value={settings.contact_address || ''}
                     onChange={(e) => updateSetting('contact_address', e.target.value)}
@@ -583,35 +583,35 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-20688-10"
                       label="فيسبوك"
                       value={settings.social_facebook || ''}
                       onChange={(e) => updateSetting('social_facebook', e.target.value)}
                       placeholder="https://facebook.com/..."
                       leftIcon={<Facebook className="w-4 h-4 text-muted-foreground" />}
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-21074-11"
                       label="تويتر (X)"
                       value={settings.social_twitter || ''}
                       onChange={(e) => updateSetting('social_twitter', e.target.value)}
                       placeholder="https://twitter.com/..."
                       leftIcon={<Twitter className="w-4 h-4 text-muted-foreground" />}
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-21459-12"
                       label="لينكد إن"
                       value={settings.social_linkedin || ''}
                       onChange={(e) => updateSetting('social_linkedin', e.target.value)}
                       placeholder="https://linkedin.com/in/..."
                       leftIcon={<Linkedin className="w-4 h-4 text-muted-foreground" />}
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-21850-13"
                       label="واتساب"
                       value={settings.social_whatsapp || ''}
                       onChange={(e) => updateSetting('social_whatsapp', e.target.value)}
                       placeholder="+9627..."
                       leftIcon={<Phone className="w-4 h-4 text-muted-foreground" />}
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-22217-14"
                       label="تيك توك"
                       value={settings.social_tiktok || ''}
                       onChange={(e) => updateSetting('social_tiktok', e.target.value)}
@@ -914,33 +914,33 @@ export default function SettingsPage() {
                     </div>
                   )}
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-38688-15"
                       label="خادم SMTP"
                       value={settings.mail_host || ''}
                       onChange={(e) => updateSetting('mail_host', e.target.value)}
                       placeholder="smtp.example.com"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-38969-16"
                       label="المنفذ"
                       value={settings.mail_port || ''}
                       onChange={(e) => updateSetting('mail_port', e.target.value)}
                       placeholder="587"
                       inputMode="numeric"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-39276-17"
                       label="اسم المستخدم"
                       value={settings.mail_username || ''}
                       onChange={(e) => updateSetting('mail_username', e.target.value)}
                       placeholder="user@example.com"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-39568-18"
                       label="كلمة المرور"
                       type="password"
                       value={settings.mail_password || ''}
                       onChange={(e) => updateSetting('mail_password', e.target.value)}
                       placeholder="••••••••"
                     />
-                    <Select
+                    <Select name="field-app-dashboard-settings-page-39889-19"
                       label="التشفير"
                       value={settings.mail_encryption || 'tls'}
                       onChange={(e) => updateSetting('mail_encryption', e.target.value)}
@@ -950,13 +950,13 @@ export default function SettingsPage() {
                         { value: 'none', label: 'بدون تشفير (25)' },
                       ]}
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-40425-20"
                       label="عنوان المرسل"
                       value={settings.mail_from_address || ''}
                       onChange={(e) => updateSetting('mail_from_address', e.target.value)}
                       placeholder="noreply@example.com"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-40728-21"
                       label="اسم المرسل"
                       value={settings.mail_from_name || ''}
                       onChange={(e) => updateSetting('mail_from_name', e.target.value)}
@@ -998,7 +998,7 @@ export default function SettingsPage() {
                   {/* Send Test Email */}
                   <div className="w-full flex items-end gap-3">
                     <div className="flex-1">
-                      <Input
+                      <Input name="field-app-dashboard-settings-page-42636-22"
                         label="إرسال بريد تجريبي"
                         type="email"
                         value={testEmail}
@@ -1034,31 +1034,31 @@ export default function SettingsPage() {
                   <CardDescription>تحسين محركات البحث</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-43930-23"
                     label="عنوان الصفحة الرئيسية"
                     value={settings.meta_title || ''}
                     onChange={(e) => updateSetting('meta_title', e.target.value)}
                     placeholder="عنوان الموقع | الوصف"
                   />
-                  <Textarea
+                  <Textarea name="field-app-dashboard-settings-page-44217-24"
                     label="الوصف التعريفي"
                     value={settings.meta_description || ''}
                     onChange={(e) => updateSetting('meta_description', e.target.value)}
                     placeholder="وصف الموقع لمحركات البحث (150-160 حرف)"
                   />
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-44530-25"
                     label="الكلمات المفتاحية"
                     value={settings.meta_keywords || ''}
                     onChange={(e) => updateSetting('meta_keywords', e.target.value)}
                     placeholder="كلمة1, كلمة2, كلمة3"
                   />
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-44818-26"
                     label="رابط Canonical"
                     value={settings.canonical_url || ''}
                     onChange={(e) => updateSetting('canonical_url', e.target.value)}
                     placeholder="https://example.com"
                   />
-                   <Input
+                   <Input name="field-app-dashboard-settings-page-45104-27"
                     label="رابط خريطة الموقع (Sitemap)"
                     value={settings.sitemap_url || ''}
                     onChange={(e) => updateSetting('sitemap_url', e.target.value)}
@@ -1074,20 +1074,20 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-45789-28"
                       label="معرف Google Analytics"
                       value={settings.google_analytics_id || ''}
                       onChange={(e) => updateSetting('google_analytics_id', e.target.value)}
                       placeholder="G-XXXXXXXXXX"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-46098-29"
                       label="معرف Facebook Pixel"
                       value={settings.facebook_pixel_id || ''}
                       onChange={(e) => updateSetting('facebook_pixel_id', e.target.value)}
                       placeholder="XXXXXXXXXXXXXXX"
                     />
                     <div className="sm:col-span-2">
-                      <Input
+                      <Input name="field-app-dashboard-settings-page-46458-30"
                         label="CookieYes Client ID"
                         value={settings.cookieyes_id || ''}
                         onChange={(e) => updateSetting('cookieyes_id', e.target.value.trim())}
@@ -1111,7 +1111,7 @@ export default function SettingsPage() {
                   <CardDescription>التحكم في فهرسة محركات البحث</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Textarea
+                  <Textarea name="field-app-dashboard-settings-page-47742-31"
                     value={settings.robots_txt || 'User-agent: *\nAllow: /'}
                     onChange={(e) => updateSetting('robots_txt', e.target.value)}
                     placeholder="محتوى robots.txt"
@@ -1148,7 +1148,7 @@ export default function SettingsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-49122-32"
                     label="معرف AdSense Client"
                     value={settings.adsense_client || ''}
                     onChange={(e) => updateSetting('adsense_client', e.target.value)}
@@ -1180,7 +1180,7 @@ export default function SettingsPage() {
                       { key: 'google_ads_desktop_download',   label: 'التحميل (1)' },
                       { key: 'google_ads_desktop_download_2', label: 'التحميل (2)' },
                     ].map(({ key, label }) => (
-                      <Input
+                      <Input name="field-app-dashboard-settings-page-51038-33"
                         key={key}
                         label={label}
                         value={extractSlotId(settings[key as keyof typeof settings] as string || '')}
@@ -1217,7 +1217,7 @@ export default function SettingsPage() {
                       { key: 'google_ads_mobile_download',   label: 'التحميل (1)' },
                       { key: 'google_ads_mobile_download_2', label: 'التحميل (2)' },
                     ].map(({ key, label }) => (
-                      <Input
+                      <Input name="field-app-dashboard-settings-page-53085-34"
                         key={key}
                         label={label}
                         value={extractSlotId(settings[key as keyof typeof settings] as string || '')}
@@ -1247,13 +1247,13 @@ export default function SettingsPage() {
                   <CardDescription>إعدادات الحماية من السبام</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-54202-35"
                     label="Site Key"
                     value={settings.recaptcha_site_key || ''}
                     onChange={(e) => updateSetting('recaptcha_site_key', e.target.value)}
                     placeholder="xxxxxxxxxxxxxxxx"
                   />
-                  <Input
+                  <Input name="field-app-dashboard-settings-page-54488-36"
                     label="Secret Key"
                     value={settings.recaptcha_secret_key || ''}
                     onChange={(e) => updateSetting('recaptcha_secret_key', e.target.value)}
@@ -1282,14 +1282,14 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-56309-37"
                       label="Client ID"
                       value={settings.google_client_id || ''}
                       onChange={(e) => updateSetting('google_client_id', e.target.value)}
                       placeholder="123456789-xxx.apps.googleusercontent.com"
                       dir="ltr"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-56660-38"
                       label="Client Secret"
                       type="password"
                       value={settings.google_client_secret || ''}
@@ -1297,7 +1297,7 @@ export default function SettingsPage() {
                       placeholder="GOCSPX-..."
                       dir="ltr"
                     />
-                    <Input
+                    <Input name="field-app-dashboard-settings-page-57031-39"
                       label="Redirect URI"
                       value={settings.google_redirect_uri || ''}
                       onChange={(e) => updateSetting('google_redirect_uri', e.target.value)}
@@ -1368,7 +1368,7 @@ export default function SettingsPage() {
                       ))}
                     </div>
                     <div className="mt-4">
-                        <Input 
+                        <Input name="field-app-dashboard-settings-page-60227-40" 
                             label="لون مخصص"
                             type="color"
                             value={primaryColor || '#696cff'}

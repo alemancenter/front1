@@ -5,7 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FONT_DIR="$ROOT_DIR/public/fonts/cairo"
 REQUIRED=(
   "Cairo-Regular.woff2"
-  "Cairo-Medium.woff2"
   "Cairo-SemiBold.woff2"
   "Cairo-Bold.woff2"
 )
@@ -22,7 +21,7 @@ done
 
 if [[ "$missing" -ne 0 ]]; then
   echo "
-Upload the required Cairo WOFF2 files before production build/deploy."
+Upload the required Cairo WOFF2 files before production build/deploy. Cairo-Medium.woff2 is optional; weight 500 is synthesized from the available faces."
   exit 1
 fi
 

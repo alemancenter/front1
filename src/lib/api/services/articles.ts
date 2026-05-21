@@ -86,6 +86,37 @@ export interface ArticleStats {
   drafts: number;
 }
 
+
+
+type ArticleWithViewAliases = Article & {
+  visit_count?: number;
+  view_count?: number;
+  views_count?: number;
+  views?: number;
+};
+
+function toNumber(value: unknown): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function normalizeArticleViews(article: Article): Article {
+  const raw = article as ArticleWithViewAliases;
+  const views = toNumber(raw.views ?? raw.visit_count ?? raw.view_count ?? raw.views_count);
+  return {
+    ...article,
+    views,
+    visit_count: views,
+  };
+}
+
+function normalizeArticlePage(response: PaginatedResponse<Article>): PaginatedResponse<Article> {
+  return {
+    ...response,
+    data: Array.isArray(response.data) ? response.data.map(normalizeArticleViews) : [],
+  };
+}
+
 export const articlesService = {
   /**
    * Get article statistics
@@ -95,7 +126,7 @@ export const articlesService = {
     const raw = response.data.data ?? response.data;
     return {
       total: raw.total ?? 0,
-      views: raw.views ?? 0,
+      views: toNumber((raw as any).views ?? (raw as any).visit_count ?? (raw as any).view_count ?? (raw as any).views_count),
       published: raw.published ?? 0,
       drafts: raw.drafts ?? 0,
     };
@@ -111,7 +142,7 @@ export const articlesService = {
       API_ENDPOINTS.ARTICLES.LIST,
       params
     );
-    return response.data;
+    return normalizeArticlePage(response.data);
   },
 
   /**
@@ -133,7 +164,7 @@ export const articlesService = {
       API_ENDPOINTS.ARTICLES.SHOW(id),
       { country }
     );
-    return response.data.data || response.data;
+    return normalizeArticleViews((response.data.data || response.data) as Article);
   },
 
   /**

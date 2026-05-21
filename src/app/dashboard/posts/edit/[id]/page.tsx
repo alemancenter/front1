@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import 'summernote/dist/summernote-lite.css';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Image from '@/components/common/AppImage';
 import { toast } from 'react-hot-toast';
@@ -10,6 +9,8 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import RichTextEditor from '@/components/editor/RichTextEditor';
+import { uploadEditorFile, uploadEditorImage } from '@/lib/editor/uploads';
 import { postsService, categoriesService, articlesService, COUNTRIES } from '@/lib/api/services';
 import type { FileItem } from '@/types';
 import { getStorageUrl, extractError } from '@/lib/utils';
@@ -27,20 +28,42 @@ function normalizeDashboardCountryId(country: unknown, fallback: DashboardCountr
   return byCode[value] || fallback;
 }
 
+function parseDashboardPostId(rawId: unknown, countryFallback?: string | null) {
+  const raw = String(rawId || '').trim();
+  const fallbackCountry = normalizeDashboardCountryId(countryFallback);
+
+  // Review Queue and cross-country reports may generate IDs like "jo:26".
+  // The dashboard API expects the numeric ID only, with country passed separately.
+  const compositeMatch = raw.match(/^([a-z]{2}|[1-4]):(\d+)$/i);
+  if (compositeMatch) {
+    return {
+      id: compositeMatch[2],
+      country: normalizeDashboardCountryId(compositeMatch[1], fallbackCountry),
+      isValid: true,
+    };
+  }
+
+  if (/^\d+$/.test(raw)) {
+    return { id: raw, country: fallbackCountry, isValid: true };
+  }
+
+  return { id: '', country: fallbackCountry, isValid: false };
+}
+
 export default function EditPostPage() {
   const { isAuthorized } = usePermissionGuard('manage posts');
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const id = params.id as string;
+  const rawId = params.id as string;
   const countryParam = searchParams.get('country');
+  const parsedRoute = useMemo(() => parseDashboardPostId(rawId, countryParam), [rawId, countryParam]);
+  const postId = parsedRoute.id;
 
-  const editorRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<string>('');
-  const [summernoteReady, setSummernoteReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCountry, setSelectedCountry] = useState<DashboardCountryId>(normalizeDashboardCountryId(countryParam));
+  const [selectedCountry, setSelectedCountry] = useState<DashboardCountryId>(parsedRoute.country);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<FileItem[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(undefined);
@@ -78,6 +101,10 @@ export default function EditPostPage() {
   );
 
   useEffect(() => {
+    setSelectedCountry(parsedRoute.country);
+  }, [parsedRoute.country]);
+
+  useEffect(() => {
     if (!isAuthorized) return;
     const t = setTimeout(async () => {
       const title = formData.title.trim();
@@ -103,22 +130,15 @@ export default function EditPostPage() {
   }, [formData.title, selectedCountry, initialTitle, isAuthorized]);
 
   useEffect(() => {
-    (async () => {
-      const jquery = (await import('jquery')).default;
-      (window as any).$ = jquery;
-      (window as any).jQuery = jquery;
-      await import('summernote/dist/summernote-lite');
-      await import('summernote/dist/lang/summernote-ar-AR');
-      setSummernoteReady(true);
-    })();
-  }, []);
-
-  useEffect(() => {
     const fetchData = async () => {
-      if (!id) return;
+      if (!parsedRoute.isValid || !postId) {
+        toast.error('معرف المنشور غير صحيح');
+        setIsLoading(false);
+        return;
+      }
       try {
         setIsLoading(true);
-        const post = await postsService.getById(id, selectedCountry);
+        const post = await postsService.getById(postId, selectedCountry);
         const postCountry = normalizeDashboardCountryId((post as any).country, selectedCountry);
         setSelectedCountry(postCountry);
         const res: unknown = await categoriesService.getAll({
@@ -154,162 +174,7 @@ export default function EditPostPage() {
       }
     };
     fetchData();
-  }, [id, selectedCountry]);
-
-  useEffect(() => {
-    if (!summernoteReady || !editorRef.current || isLoading) return;
-    const jq = (window as any).jQuery || (window as any).$;
-    if (!jq) return;
-    const el = jq(editorRef.current);
-    if (!el.data('summernote')) {
-      el.summernote({
-        height: 420,
-        minHeight: 240,
-        maxHeight: null,
-        placeholder: 'اكتب المحتوى هنا...',
-        lang: 'ar-AR',
-        fontSizes: ['10', '12', '14', '16', '18', '24', '36'],
-        buttons: {
-          fileUpload: function () {
-            const ui = (jq as any).summernote.ui;
-            return ui.button({
-              contents: '<span class="note-icon-link"></span>',
-              tooltip: 'رفع ملف',
-              click: async function () {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.onchange = async () => {
-                  const f = input.files && input.files[0];
-                  if (!f) return;
-                  const fd = new FormData();
-                  fd.append('file', f);
-                  try {
-                    const resp = await fetch('/api/upload/file', { method: 'POST', body: fd });
-                    const json = await resp.json();
-                    const url = (json as any).url ?? (json as any).data?.url;
-                    const name = (json as any).name ?? (json as any).data?.name ?? f.name;
-                    if (url) {
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.textContent = name;
-                      a.target = '_blank';
-                      el.summernote('insertNode', a);
-                    }
-                  } catch (err) {
-                    console.error(err);
-                  }
-                };
-                input.click();
-              },
-            });
-          },
-        },
-        toolbar: [
-          ['style', ['style']],
-          ['font', ['bold', 'italic', 'underline', 'clear']],
-          ['fontname', ['fontname']],
-          ['fontsize', ['fontsize']],
-          ['color', ['color']],
-          ['para', ['ul', 'ol', 'paragraph']],
-          ['table', ['table']],
-          ['insert', ['link', 'picture', 'video', 'fileUpload']],
-          ['view', ['fullscreen', 'codeview', 'help']],
-        ],
-        popover: {
-          image: [
-            ['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
-            ['float', ['floatLeft', 'floatRight', 'floatNone']],
-            ['remove', ['removeMedia']],
-          ],
-          link: [
-            ['link', ['linkDialogShow', 'unlink']],
-          ],
-          table: [
-            ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-            ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-          ],
-        },
-        styleTags: ['p', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4'],
-        fontNames: ['Cairo', 'Tajawal', 'Almarai', 'Arial', 'Helvetica', 'Times New Roman', 'Courier New'],
-        fontNamesIgnoreCheck: ['Cairo', 'Tajawal', 'Almarai'],
-        disableDragAndDrop: true,
-        dialogsInBody: true,
-        callbacks: {
-          onInit: () => {
-            if (formData.content) {
-              el.summernote('code', formData.content);
-              contentRef.current = formData.content;
-            }
-          },
-          onChange: (contents: string) => {
-            contentRef.current = contents;
-          },
-          onImageUpload: async (files: File[]) => {
-            if (!files || !files.length) return;
-            const file = files[0];
-            const fd = new FormData();
-            fd.append('file', file);
-            fd.append('width', '1920');
-            fd.append('quality', '85');
-            fd.append('convert_to_webp', 'true');
-            try {
-              const resp = await fetch('/api/upload/image', {
-                method: 'POST',
-                body: fd,
-                credentials: 'include'
-              });
-              const json = await resp.json();
-              if (!resp.ok) {
-                throw new Error(json.message || 'فشل رفع الصورة');
-              }
-              const url = json?.data?.url ?? json?.url;
-              console.log('[Upload] Response:', json, 'URL:', url);
-              if (url) {
-                // Create image element and insert it
-                const $img = jq('<img>').attr({
-                  src: url,
-                  alt: file.name
-                }).css({
-                  'max-width': '100%',
-                  'height': 'auto'
-                });
-                el.summernote('insertNode', $img[0]);
-                console.log('[Upload] Image inserted successfully');
-              } else {
-                console.error('No URL returned from upload', json);
-              }
-            } catch (err) {
-              console.error('Upload image error', err);
-            }
-          },
-        },
-      });
-
-      const noteEditor = el.next('.note-editor');
-      noteEditor.find('.note-toolbar').attr('dir', 'rtl').css('direction', 'rtl');
-      noteEditor.find('.note-btn-group').css('direction', 'ltr');
-      const editable = noteEditor.find('.note-editable');
-      editable.attr('dir', 'rtl');
-      editable.css('font-family', 'Cairo, Tajawal, Almarai, sans-serif');
-      editable.css('text-align', 'right');
-      editable.css('direction', 'rtl');
-      noteEditor.find('.dropdown-menu').css('text-align', 'right');
-    }
-    
-    // Capture ref value for cleanup
-    const currentRef = editorRef.current;
-    
-    return () => {
-      try {
-        if (currentRef) {
-          (window as any).jQuery(currentRef).summernote('destroy');
-        }
-      } catch {}
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [summernoteReady, isLoading]); // Exclude formData.content to avoid re-init loop
-  
-
+  }, [postId, selectedCountry, parsedRoute.isValid]);
 
   useEffect(() => {
     if (!isGeneratingAi) { setAiElapsedSeconds(0); return; }
@@ -360,12 +225,9 @@ export default function EditPostPage() {
       const content = article?.content_html || article?.content || '';
       if (content) {
         contentRef.current = content;
-        const jq = (window as any).jQuery || (window as any).$;
-        if (jq && editorRef.current) {
-          jq(editorRef.current).summernote('code', content);
-        }
         setFormData((prev) => ({
           ...prev,
+          content,
           ...(!prev.meta_description?.trim() && article.meta_description
             ? { meta_description: article.meta_description }
             : {}),
@@ -395,7 +257,7 @@ export default function EditPostPage() {
     }
     try {
       setIsSubmitting(true);
-      await postsService.update(id, {
+      await postsService.update(postId, {
         country: selectedCountry,
         title: formData.title,
         content: latestContent,
@@ -412,7 +274,7 @@ export default function EditPostPage() {
         type: 'post_updated',
         title: `تحديث منشور: ${formData.title}`,
         message: `تم تحديث المنشور "${formData.title}"`,
-        action_url: `/${countryIdToDatabase(selectedCountry)}/posts/${id}`,
+        action_url: `/${countryIdToDatabase(selectedCountry)}/posts/${postId}`,
       });
       toast.success('تم تعديل المنشور بنجاح');
       router.push('/dashboard/posts');
@@ -428,7 +290,7 @@ export default function EditPostPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Select
+          <Select name="field-app-dashboard-posts-edit-id-page-16127-1"
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value as '1' | '2' | '3' | '4')}
             options={COUNTRIES.map((c) => ({ value: c.id, label: c.name }))}
@@ -485,7 +347,7 @@ export default function EditPostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Input
+              <Input name="field-app-dashboard-posts-edit-id-page-18221-2"
                 label="عنوان المنشور"
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
@@ -525,7 +387,19 @@ export default function EditPostPage() {
               </div>
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>
-                <div ref={editorRef} id="summernote" className="w-full bg-card" />
+                <RichTextEditor
+                  id="post-content"
+                  name="content"
+                  value={formData.content || ''}
+                  placeholder="اكتب المحتوى هنا..."
+                  minHeight={420}
+                  onChange={(html) => {
+                    contentRef.current = html;
+                    setFormData((prev) => ({ ...prev, content: html }));
+                  }}
+                  onImageUpload={uploadEditorImage}
+                  onFileUpload={uploadEditorFile}
+                />
               </div>
             </CardContent>
           </Card>
@@ -538,19 +412,19 @@ export default function EditPostPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Select
+              <Select name="field-app-dashboard-posts-edit-id-page-20818-3"
                 label="الفئة"
                 value={formData.category_id}
                 onChange={(e) => setFormData((prev) => ({ ...prev, category_id: Number((e.target as any).value) }))}
                 options={categoryOptions}
               />
-              <Input
+              <Input name="field-app-dashboard-posts-edit-id-page-21091-4"
                 label="الوصف التعريفي"
                 value={formData.meta_description || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
                 placeholder="وصف قصير يظهر لمحركات البحث (اختياري)"
               />
-              <Input
+              <Input name="field-app-dashboard-posts-edit-id-page-21397-5"
                 label="الكلمات المفتاحية"
                 value={formData.keywords || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}

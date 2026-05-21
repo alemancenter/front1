@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState, useRef } from 'react';
-import 'summernote/dist/summernote-lite.css';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { motion } from '@/lib/motion-lite';
@@ -24,6 +23,8 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import RichTextEditor from '@/components/editor/RichTextEditor';
+import { uploadEditorFile, uploadEditorImage } from '@/lib/editor/uploads';
 import { articlesService, COUNTRIES, apiClient, API_ENDPOINTS } from '@/lib/api/services';
 import type { ArticleFormData } from '@/lib/api/services/articles';
 import type { SchoolClass, Subject, Semester } from '@/types';
@@ -49,9 +50,7 @@ export default function EditArticlePage() {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingSemesters, setLoadingSemesters] = useState(false);
 
-  const editorRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<string>('');
-  const [summernoteReady, setSummernoteReady] = useState(false);
   const [useTitleForMeta, setUseTitleForMeta] = useState(false);
   const [useKeywordsForMeta, setUseKeywordsForMeta] = useState(false);
   const [isCheckingTitle, setIsCheckingTitle] = useState(false);
@@ -264,203 +263,6 @@ export default function EditArticlePage() {
     return () => clearTimeout(t);
   }, [formData.title, selectedCountry, initialTitle, isAuthorized]);
 
-  useEffect(() => {
-    (async () => {
-      const jquery = (await import('jquery')).default;
-      (window as any).$ = jquery;
-      (window as any).jQuery = jquery;
-      await import('summernote/dist/summernote-lite');
-      await import('summernote/dist/lang/summernote-ar-AR');
-      setSummernoteReady(true);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!summernoteReady || !editorRef.current || isLoading) return;
-    
-    const jq = (window as any).jQuery || (window as any).$;
-    if (!jq) return;
-
-    const $editor = jq(editorRef.current);
-    
-    // Destroy existing if any (safe check)
-    if ($editor.data('summernote')) {
-        $editor.summernote('destroy');
-    }
-
-    $editor.summernote({
-      height: 400,
-      minHeight: 240,
-      maxHeight: null,
-      placeholder: 'اكتب المحتوى هنا...',
-      lang: 'ar-AR',
-      fontSizes: ['10', '12', '14', '16', '18', '24', '36'],
-      buttons: {
-        fileUpload: function () {
-          const ui = (jq as any).summernote.ui;
-          return ui.button({
-            contents: '<span class="note-icon-link"></span>',
-            tooltip: 'رفع ملف',
-            click: async function () {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.onchange = async () => {
-                const f = input.files && input.files[0];
-                if (!f) return;
-                const fd = new FormData();
-                fd.append('file', f);
-                try {
-                  const resp = await fetch('/api/upload/file', { method: 'POST', body: fd });
-                  const json = await resp.json();
-                  const url = (json as any).url ?? (json as any).data?.url;
-                  const name = (json as any).name ?? (json as any).data?.name ?? f.name;
-                  if (url) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.textContent = name;
-                    a.target = '_blank';
-                    $editor.summernote('insertNode', a);
-                  }
-                } catch (err) {
-                  const info = extractError(err);
-                  if (info.status === 404) {
-                    try {
-                      const resp2 = await fetch('/api/upload/file', { method: 'POST', body: fd });
-                      const json2 = await resp2.json();
-                      const url2 = (json2 as any).url ?? (json2 as any).data?.url;
-                      const name2 = (json2 as any).name ?? (json2 as any).data?.name ?? f.name;
-                      if (url2) {
-                        const a = document.createElement('a');
-                        a.href = url2;
-                        a.textContent = name2;
-                        a.target = '_blank';
-                        $editor.summernote('insertNode', a);
-                      }
-                      return;
-                    } catch (e2) {
-                      console.error('Upload file error (secure)', extractError(e2));
-                    }
-                  }
-                  console.error('Upload file error', info);
-                }
-              };
-              input.click();
-            },
-          });
-        },
-      },
-      toolbar: [
-        ['style', ['style']],
-        ['font', ['bold', 'italic', 'underline', 'clear']],
-        ['fontname', ['fontname']],
-        ['fontsize', ['fontsize']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['table', ['table']],
-        ['insert', ['link', 'picture', 'video', 'fileUpload']],
-        ['view', ['fullscreen', 'codeview', 'help']],
-      ],
-      styleTags: ['p', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4'],
-      fontNames: ['Cairo', 'Tajawal', 'Almarai', 'Arial', 'Helvetica', 'Times New Roman', 'Courier New'],
-      fontNamesIgnoreCheck: ['Cairo', 'Tajawal', 'Almarai'],
-      disableDragAndDrop: true,
-      dialogsInBody: true,
-      popover: {
-        image: [
-          ['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
-          ['float', ['floatLeft', 'floatRight', 'floatNone']],
-          ['remove', ['removeMedia']],
-        ],
-        link: [
-          ['link', ['linkDialogShow', 'unlink']],
-        ],
-        table: [
-          ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-          ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-        ],
-        air: [
-          ['color', ['color']],
-          ['font', ['bold', 'underline', 'clear']],
-          ['para', ['ul', 'paragraph']],
-          ['table', ['table']],
-          ['insert', ['link', 'picture']],
-        ],
-      },
-      callbacks: {
-        onInit: () => {
-          // Fix RTL issues manually
-          const noteEditor = $editor.next('.note-editor');
-          noteEditor.find('.note-toolbar').attr('dir', 'rtl').css('direction', 'rtl');
-          noteEditor.find('.note-btn-group').css('direction', 'ltr');
-          const editable = noteEditor.find('.note-editable');
-          editable.attr('dir', 'rtl');
-          editable.css('font-family', 'Cairo, Tajawal, Almarai, sans-serif');
-          editable.css('text-align', 'right');
-          editable.css('direction', 'rtl');
-          noteEditor.find('.dropdown-menu').css('text-align', 'right');
-
-          if (formData.content) {
-              $editor.summernote('code', formData.content);
-              contentRef.current = formData.content;
-          }
-        },
-        onChange: (contents: string) => {
-          contentRef.current = contents;
-        },
-        onImageUpload: async (files: File[]) => {
-          if (!files || !files.length) return;
-          const file = files[0];
-          const fd = new FormData();
-          fd.append('file', file);
-          fd.append('width', '1920');
-          fd.append('quality', '85');
-          fd.append('convert_to_webp', 'true');
-          try {
-            const resp = await fetch('/api/upload/image', {
-              method: 'POST',
-              body: fd,
-              credentials: 'include'
-            });
-            const json = await resp.json();
-            if (!resp.ok) {
-              throw new Error(json.message || 'فشل رفع الصورة');
-            }
-            // Handle nested data structure: { data: { url: ... } } or { url: ... }
-            const url = json?.data?.url ?? json?.url;
-            console.log('[Upload] Response:', json, 'URL:', url);
-            if (url) {
-              // Create image element and insert it
-              const $img = jq('<img>').attr({
-                src: url,
-                alt: file.name
-              }).css({
-                'max-width': '100%',
-                'height': 'auto'
-              });
-              $editor.summernote('insertNode', $img[0]);
-              console.log('[Upload] Image inserted successfully');
-            } else {
-              console.error('No URL returned from upload', json);
-            }
-          } catch (err) {
-            console.error('Upload image error', extractError(err));
-          }
-        },
-      },
-    });
-
-    return () => {
-      if ($editor.data('summernote')) {
-        $editor.summernote('destroy');
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [summernoteReady, isLoading]); // Re-run when ready or loading finishes (to set content)
-
-  // Update summernote code if content changes externally (e.g. from fetch)
-  // But strictly, we only want to set it once on load.
-  // The onInit callback handles the initial set.
-
   const handleAiGenerate = async () => {
     const title = formData.title.trim();
     if (!title || title.length < 3) {
@@ -473,13 +275,10 @@ export default function EditArticlePage() {
       if (article?.content_html) {
         // Set editor content
         contentRef.current = article.content_html;
-        const jq = (window as any).jQuery || (window as any).$;
-        if (jq && editorRef.current) {
-          jq(editorRef.current).summernote('code', article.content_html);
-        }
         // Auto-fill SEO fields only if they are currently empty
         setFormData((prev: ArticleFormData) => ({
           ...prev,
+          content: article.content_html,
           ...((!prev.meta_description || prev.meta_description.trim() === '') && article.meta_description
             ? { meta_description: article.meta_description }
             : {}),
@@ -715,7 +514,19 @@ export default function EditArticlePage() {
               </div>
               <div className="space-y-2">
                 <span className="block text-sm font-medium mb-2">المحتوى</span>
-                <div ref={editorRef} id="summernote" className="w-full bg-card" />
+                <RichTextEditor
+                  id="article-content"
+                  name="content"
+                  value={formData.content || ''}
+                  placeholder="اكتب المحتوى هنا..."
+                  minHeight={420}
+                  onChange={(html) => {
+                    contentRef.current = html;
+                    setFormData((prev) => ({ ...prev, content: html }));
+                  }}
+                  onImageUpload={uploadEditorImage}
+                  onFileUpload={uploadEditorFile}
+                />
               </div>
             </CardContent>
           </Card>

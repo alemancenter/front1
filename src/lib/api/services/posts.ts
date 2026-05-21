@@ -32,6 +32,40 @@ function appendPostField(formData: FormData, key: string, value: string | number
   }
 }
 
+
+
+type PostWithViewAliases = Post & {
+  views?: number;
+  view_count?: number;
+  views_count?: number;
+  visit_count?: number;
+};
+
+function toNumber(value: unknown): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function normalizePostViews(post: Post): Post {
+  const raw = post as PostWithViewAliases;
+  const views = toNumber(raw.views ?? raw.views_count ?? raw.view_count ?? raw.visit_count);
+  return {
+    ...post,
+    views,
+    views_count: views,
+    view_count: views,
+  };
+}
+
+function normalizePostListPayload(payload: any): any {
+  if (!payload) return payload;
+  if (Array.isArray(payload)) return payload.map(normalizePostViews);
+  if (Array.isArray(payload.data)) {
+    return { ...payload, data: payload.data.map(normalizePostViews) };
+  }
+  return payload;
+}
+
 export const postsService = {
   /**
    * Get paginated posts list
@@ -42,7 +76,8 @@ export const postsService = {
       filters,
       options
     );
-    return response as any;
+    const normalized = normalizePostListPayload((response as any).data ?? response);
+    return ((response as any).data ? { ...(response as any), data: normalized } : normalized) as any;
   },
 
   /**
@@ -55,7 +90,7 @@ export const postsService = {
     );
     // apiClient unwraps the response if it has a 'data' property
     // But we need to be careful about the type.
-    return (response.data as any).data || response.data;
+    return normalizePostViews(((response.data as any).data || response.data) as Post);
   },
 
   /**
@@ -87,7 +122,7 @@ export const postsService = {
         { country }
       );
 
-      post = ((response.data as any).data || response.data) as Post;
+      post = normalizePostViews(((response.data as any).data || response.data) as Post);
     } else {
       const response = await apiClient.post<{ data: Post }>(
         API_ENDPOINTS.POSTS.STORE,
@@ -95,7 +130,7 @@ export const postsService = {
         { params: { country } }
       );
 
-      post = ((response.data as any).data || response.data) as Post;
+      post = normalizePostViews(((response.data as any).data || response.data) as Post);
     }
 
     if (attachments && Array.isArray(attachments)) {
@@ -129,7 +164,7 @@ export const postsService = {
       { params: { country } }
     );
 
-    const post = (response.data as any).data || response.data;
+    const post = normalizePostViews(((response.data as any).data || response.data) as Post);
 
     // Handle image upload separately
     if (image instanceof File) {

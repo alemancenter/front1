@@ -199,8 +199,11 @@ export default function Sidebar({ initialSettings }: SidebarProps) {
           { title: 'نظام المراقبة', href: '/dashboard/monitor', permission: 'manage monitoring' },
           { title: 'سجلات الأمان', href: '/dashboard/security/logs', permission: 'manage security' },
           { title: 'عناوين IP المحظورة', href: '/dashboard/security/blocked-ips', permission: 'manage security' },
-          { title: 'فحص المحتوى', href: '/dashboard/content-audit', permission: 'manage content audit' },
+          { title: 'فحص المحتوى والسياسات', href: '/dashboard/content-audit', permission: 'manage content audit' },
           { title: 'جاهزية AdSense', href: '/dashboard/adsense-readiness', permission: 'manage content audit' },
+          { title: 'تحسين جودة المحتوى', href: '/dashboard/content-quality', permission: 'manage content audit' },
+          { title: 'المراجعة البشرية', href: '/dashboard/content-review', permission: 'manage content audit' },
+          { title: 'تكلفة الذكاء الاصطناعي', href: '/dashboard/ai-costs', permission: 'manage content audit' },
         ],
       },
       {

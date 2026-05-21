@@ -116,6 +116,8 @@ export interface Article {
   published_at?: string;
   views?: number;
   visit_count?: number;
+  view_count?: number;
+  views_count?: number;
   downloads?: number;
   created_at: string;
   updated_at: string;
@@ -213,6 +215,7 @@ export interface Post {
   files?: FileItem[];
   views?: number;
   views_count?: number;
+  view_count?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -232,6 +235,8 @@ export interface FileItem {
   article?: Article;
   download_count?: number;
   views_count?: number;
+  view_count?: number;
+  views?: number;
   created_at?: string;
   updated_at?: string;
 }

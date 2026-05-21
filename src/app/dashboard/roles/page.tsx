@@ -275,7 +275,7 @@ export default function RolesPage() {
         size="lg"
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-roles-page-9436-2"
             label="اسم الدور (بالإنجليزية)"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}

@@ -176,7 +176,7 @@ type SearchInputProps = Omit<InputProps, 'leftIcon' | 'type'>;
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ className, onClear, ...props }, ref) => {
     return (
-      <Input
+      <Input name="field-components-ui-input-5609-1"
         ref={ref}
         type="search"
         leftIcon={<Search className="w-4 h-4" />}

@@ -341,13 +341,13 @@ export default function SemestersPage() {
         title={modal.mode === 'create' ? 'إضافة فصل جديد' : 'تعديل الفصل'}
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-semesters-page-11837-2"
             label="اسم الفصل"
             value={formData.semester_name}
             onChange={(e) => setFormData({ ...formData, semester_name: e.target.value })}
             placeholder="مثال: الفصل الدراسي الأول"
           />
-          <Select
+          <Select name="field-app-dashboard-semesters-page-12082-3"
             label="المستوى"
             value={formData.grade_level || ''}
             onChange={(e) => setFormData({ ...formData, grade_level: Number(e.target.value) })}

@@ -145,9 +145,9 @@ export default async function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
 
-        {/* Self-hosted Cairo critical font weights */}
-        <link rel="preload" href="/fonts/cairo/Cairo-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/cairo/Cairo-SemiBold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Cairo is loaded via @font-face with font-display:swap.
+            Font preloads are intentionally disabled to avoid unused-preload warnings
+            on dashboard pages that do not immediately render all font weights. */}
         {/* Preconnect to the API — starts TCP+TLS handshake before first client fetch */}
         {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
         {apiOrigin && <link rel="dns-prefetch" href={apiOrigin} />}

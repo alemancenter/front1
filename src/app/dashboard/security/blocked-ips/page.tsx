@@ -289,7 +289,7 @@ export default function BlockedIpsPage() {
         <form onSubmit={handleBlockSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">عنوان IP</label>
-            <Input
+            <Input name="field-app-dashboard-security-blocked-ips-page-10199-1"
               value={blockForm.ip}
               onChange={(e) => setBlockForm({ ...blockForm, ip: e.target.value })}
               placeholder="Example: 192.168.1.1"
@@ -299,7 +299,7 @@ export default function BlockedIpsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">سبب الحظر</label>
-            <Input
+            <Input name="field-app-dashboard-security-blocked-ips-page-10574-2"
               value={blockForm.reason}
               onChange={(e) => setBlockForm({ ...blockForm, reason: e.target.value })}
               placeholder="مثال: محاولات دخول متكررة"
@@ -307,7 +307,7 @@ export default function BlockedIpsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">مدة الحظر بالأيام</label>
-            <Input
+            <Input name="field-app-dashboard-security-blocked-ips-page-10923-3"
               type="number"
               value={blockForm.days}
               onChange={(e) => setBlockForm({ ...blockForm, days: e.target.value })}

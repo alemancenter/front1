@@ -112,21 +112,14 @@ const securityHeaders = [
       "default-src 'self'",
 
       /*
-       * unsafe-inline is still needed by many Next.js/CMP/Ads setups.
-       * unsafe-eval is usually needed in development and sometimes by Turbopack/dev.
-       * In production you can later remove unsafe-eval after testing.
+       * Production CSP hardening:
+       * - unsafe-inline remains because Next.js, CMP and ad vendors still require inline scripts/styles.
+       * - unsafe-eval is allowed only in development; production stays strict for public pages and dashboard.
+       * If a dependency requires eval in production, replace that dependency instead of weakening CSP globally.
        */
       [
         "script-src 'self' 'unsafe-inline'",
-        /*
-         * Production compatibility note:
-         * Chrome reported an eval attempt from a compiled frontend chunk on public pages.
-         * The site continued to work, but the browser showed a CSP issue.
-         * Keep unsafe-eval enabled until the dependency/chunk that calls eval/new Function
-         * is removed or replaced. This removes the console issue without affecting AdSense
-         * rendering, while the rest of the CSP remains restrictive.
-         */
-        "'unsafe-eval'",
+        process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : '',
         'https://www.googletagmanager.com',
         'https://www.google-analytics.com',
         'https://pagead2.googlesyndication.com',
@@ -138,10 +131,10 @@ const securityHeaders = [
         'https://fundingchoicesmessages.google.com',
         'https://www.google.com',
         'https://www.recaptcha.net',
-      ].join(' '),
+      ].filter(Boolean).join(' '),
 
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
+      "img-src 'self' data: blob: https: http://127.0.0.1:8080 http://127.0.0.1:8081 http://localhost:8080 http://localhost:8081 http://localhost:3000",
       "font-src 'self' data:",
 
       [

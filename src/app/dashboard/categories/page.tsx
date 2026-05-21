@@ -500,7 +500,7 @@ export default function CategoriesPage() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <CardTitle>قائمة الفئات</CardTitle>
           <div className="flex items-center gap-3">
-            <Select
+            <Select name="field-app-dashboard-categories-page-16543-1"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[

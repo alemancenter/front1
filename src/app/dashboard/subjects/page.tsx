@@ -336,13 +336,13 @@ export default function SubjectsPage() {
         title={modal.mode === 'create' ? 'إضافة مادة جديدة' : 'تعديل المادة'}
       >
         <div className="space-y-4 mt-4">
-          <Input
+          <Input name="field-app-dashboard-subjects-page-12079-2"
             label="اسم المادة"
             value={formData.subject_name}
             onChange={(e) => setFormData({ ...formData, subject_name: e.target.value })}
             placeholder="مثال: الرياضيات"
           />
-          <Select
+          <Select name="field-app-dashboard-subjects-page-12313-3"
             label="الصف الدراسي"
             value={formData.grade_level || ''}
             onChange={(e) => setFormData({ ...formData, grade_level: Number(e.target.value) })}

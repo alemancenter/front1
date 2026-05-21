@@ -37,6 +37,22 @@ const getAvatarUrl = (user: User | undefined) => {
   return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || String(user.id))}`;
 };
 
+const normalizeText = (value: unknown) => String(value ?? '').toLowerCase();
+
+const messagePreview = (value: string | undefined) => String(value ?? '').replace(/\s+/g, ' ').trim();
+
+const formatDate = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('ar-SA');
+};
+
+const formatDateTime = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ar-SA');
+};
+
 export default function MessagesPage() {
   const { isAuthorized } = usePermissionGuard('manage messages');
   const [activeTab, setActiveTab] = useState<TabType>('inbox');
@@ -116,7 +132,7 @@ export default function MessagesPage() {
       setMessages(response.data ?? []);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load messages');
+      toast.error('فشل تحميل الرسائل');
     } finally {
       setLoading(false);
     }
@@ -192,6 +208,36 @@ export default function MessagesPage() {
     } catch (error) {
       console.error('Failed to send message:', error);
       toast.error('فشل في إرسال الرسالة');
+    } finally {
+      setSending(false);
+    }
+  };
+
+
+  const handleSaveDraft = async () => {
+    if (!composeData.recipient_id) {
+      toast.error('الرجاء اختيار المستلم قبل حفظ المسودة');
+      return;
+    }
+    if (!composeData.subject.trim() && !composeData.body.trim()) {
+      toast.error('اكتب موضوعًا أو نصًا لحفظ المسودة');
+      return;
+    }
+
+    setSending(true);
+    try {
+      await messagesService.saveDraft({
+        recipient_id: composeData.recipient_id,
+        subject: composeData.subject.trim() || 'مسودة بدون عنوان',
+        body: composeData.body.trim() || ' '
+      });
+      toast.success('تم حفظ المسودة بنجاح');
+      setComposeModal(false);
+      resetComposeForm();
+      if (activeTab === 'drafts') fetchMessages();
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+      toast.error('فشل في حفظ المسودة');
     } finally {
       setSending(false);
     }
@@ -290,12 +336,25 @@ export default function MessagesPage() {
 
   const filteredMessages = messages.filter(m => {
     if (!debouncedSearch) return true;
-    const term = debouncedSearch.toLowerCase();
+    const term = normalizeText(debouncedSearch);
     const otherParty = activeTab === 'sent' ? m.recipient : m.sender;
     return (
-      m.subject.toLowerCase().includes(term) ||
-      m.body.toLowerCase().includes(term) ||
-      otherParty?.name.toLowerCase().includes(term)
+      normalizeText(m.subject).includes(term) ||
+      normalizeText(m.body).includes(term) ||
+      normalizeText(otherParty?.name).includes(term) ||
+      normalizeText(otherParty?.email).includes(term)
+    );
+  });
+
+  const filteredContactMessages = contactMessages.filter((m) => {
+    if (!debouncedSearch) return true;
+    const term = normalizeText(debouncedSearch);
+    return (
+      normalizeText(m.name).includes(term) ||
+      normalizeText(m.email).includes(term) ||
+      normalizeText(m.phone).includes(term) ||
+      normalizeText(m.subject).includes(term) ||
+      normalizeText(m.message).includes(term)
     );
   });
 
@@ -399,21 +458,20 @@ export default function MessagesPage() {
                 <div className="p-4 border-b flex items-center gap-4">
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input className="pr-9" placeholder="بحث في رسائل التواصل..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    <Input name="contact-message-search" className="pr-9" placeholder="بحث في رسائل التواصل..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                   {loading ? (
                     <div className="flex items-center justify-center h-40"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-                  ) : contactMessages.filter(m => !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.subject.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                  ) : filteredContactMessages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                       <PhoneCall className="w-12 h-12 mb-2 opacity-20" />
                       <p>لا توجد رسائل تواصل</p>
                     </div>
                   ) : (
                     <div className="divide-y">
-                      {contactMessages
-                        .filter(m => !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.subject.toLowerCase().includes(searchQuery.toLowerCase()))
+                      {filteredContactMessages
                         .map((msg) => (
                           <div
                             key={msg.id}
@@ -426,10 +484,10 @@ export default function MessagesPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <span className={cn('font-medium', !msg.read ? 'text-foreground' : 'text-muted-foreground')}>{msg.name}</span>
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(msg.created_at).toLocaleDateString('ar-SA')}</span>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(msg.created_at)}</span>
                               </div>
                               <h4 className={cn('text-sm mb-1 truncate', !msg.read ? 'font-semibold' : 'font-normal')}>{msg.subject}</h4>
-                              <p className="text-sm text-muted-foreground truncate">{msg.message}</p>
+                              <p className="text-sm text-muted-foreground truncate">{messagePreview(msg.message)}</p>
                             </div>
                             <button
                               onClick={(e) => { e.stopPropagation(); setContactToDelete(msg.id); }}
@@ -459,7 +517,7 @@ export default function MessagesPage() {
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
-                  <span className="text-sm text-muted-foreground">{new Date(selectedContactMessage.created_at).toLocaleString('ar-SA')}</span>
+                  <span className="text-sm text-muted-foreground">{formatDateTime(selectedContactMessage.created_at)}</span>
                 </div>
                 <div className="p-6 flex-1 overflow-y-auto">
                   <div className="flex items-center gap-4 mb-6">
@@ -491,7 +549,7 @@ export default function MessagesPage() {
                 <div className="p-4 border-b flex items-center justify-between gap-4">
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
+                    <Input name="message-search"
                       className="pr-9"
                       placeholder="بحث في الرسائل..."
                       value={searchQuery}
@@ -536,14 +594,14 @@ export default function MessagesPage() {
                                   {otherParty?.name || 'مستخدم غير معروف'}
                                 </span>
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {message.created_at ? new Date(message.created_at).toLocaleDateString('ar-SA') : ''}
+                                  {formatDate(message.created_at)}
                                 </span>
                               </div>
                               <h4 className={cn("text-sm mb-1 truncate", !message.read && activeTab === 'inbox' ? "font-semibold" : "font-normal")}>
                                 {message.subject}
                               </h4>
                               <p className="text-sm text-muted-foreground truncate">
-                                {message.body}
+                                {messagePreview(message.body)}
                               </p>
                             </div>
                             <div className="flex flex-col gap-2">
@@ -587,7 +645,7 @@ export default function MessagesPage() {
                     </Button>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {selectedMessage.created_at ? new Date(selectedMessage.created_at).toLocaleString('ar-SA') : ''}
+                    {formatDateTime(selectedMessage.created_at)}
                   </span>
                 </div>
 
@@ -607,7 +665,7 @@ export default function MessagesPage() {
                           : `من: ${selectedMessage.sender?.name || 'مستخدم غير معروف'}`
                         }
                       </h3>
-                      <p className="text-sm text-muted-foreground">{selectedMessage.sender?.email}</p>
+                      <p className="text-sm text-muted-foreground">{activeTab === 'sent' ? selectedMessage.recipient?.email : selectedMessage.sender?.email}</p>
                     </div>
                   </div>
 
@@ -647,7 +705,7 @@ export default function MessagesPage() {
             ) : (
               <div className="relative">
                 <Search className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
+                <Input name="recipient-search"
                   className="pr-9"
                   placeholder="ابحث عن مستخدم..."
                   value={userSearchQuery}
@@ -684,7 +742,7 @@ export default function MessagesPage() {
             )}
           </div>
 
-          <Input
+          <Input name="message-subject"
             label="الموضوع"
             value={composeData.subject}
             onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
@@ -693,7 +751,7 @@ export default function MessagesPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">نص الرسالة</label>
-            <textarea name="field-app-dashboard-messages-page-696-1"
+            <textarea name="message-body"
               className="w-full min-h-[200px] p-3 rounded-md border bg-background resize-y focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="اكتب رسالتك هنا..."
               value={composeData.body}
@@ -702,8 +760,11 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setComposeModal(false)}>
+            <Button variant="outline" onClick={() => { setComposeModal(false); resetComposeForm(); }}>
               إلغاء
+            </Button>
+            <Button variant="secondary" onClick={handleSaveDraft} isLoading={sending} leftIcon={<FileText className="w-4 h-4" />}>
+              حفظ كمسودة
             </Button>
             <Button onClick={handleSendMessage} isLoading={sending} leftIcon={<Send className="w-4 h-4" />}>
               إرسال
