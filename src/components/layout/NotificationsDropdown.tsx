@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Bell, Check, MessageSquare, FileText, Newspaper, Info } from 'lucide-react';
 import { notificationService, Notification } from '@/lib/api/services/notifications';
 import { apiClient } from '@/lib/api/client';
@@ -20,12 +21,15 @@ export default function NotificationsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { country } = useCountryStore();
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
+  const pathname = usePathname();
   const countryCode = country?.code || 'jo';
+  const isDashboardPath = pathname?.startsWith('/dashboard') ?? false;
+  const canUseDashboardNotifications = _hasHydrated && isDashboardPath && isAuthenticated && !!user;
 
-  const getAuthToken = () => {
+  const getAuthToken = useCallback(() => {
     if (typeof window === 'undefined') return null;
     return apiClient.getToken();
-  };
+  }, []);
 
   // Reset poll permission when user identity changes (e.g. after email verification + re-login)
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function NotificationsDropdown() {
   }, [user?.id]);
 
   const fetchNotifications = useCallback(async () => {
-    if (!_hasHydrated || !isAuthenticated || !user) return;
+    if (!canUseDashboardNotifications) return;
 
     const token = getAuthToken();
     if (!token) {
@@ -62,12 +66,12 @@ export default function NotificationsDropdown() {
       setNotifications([]);
       setUnreadCount(0);
     }
-  }, [_hasHydrated, isAuthenticated, logout, user]);
+  }, [canUseDashboardNotifications, getAuthToken, logout]);
 
   useEffect(() => {
     const token = getAuthToken();
 
-    if (!_hasHydrated || !isAuthenticated || !user || !token || !pollEnabled) {
+    if (!canUseDashboardNotifications || !token || !pollEnabled) {
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -82,7 +86,7 @@ export default function NotificationsDropdown() {
       clearInterval(interval);
       window.removeEventListener('notifications:refresh', fetchNotifications);
     };
-  }, [_hasHydrated, fetchNotifications, isAuthenticated, user, pollEnabled]);
+  }, [canUseDashboardNotifications, fetchNotifications, getAuthToken, pollEnabled]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -159,7 +163,7 @@ export default function NotificationsDropdown() {
     return '/dashboard/notifications';
   };
 
-  if (!_hasHydrated || !isAuthenticated || !user) {
+  if (!canUseDashboardNotifications) {
     return null;
   }
 

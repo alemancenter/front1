@@ -55,16 +55,23 @@ const formatDateTime = (value?: string) => {
 
 export default function MessagesPage() {
   const { isAuthorized } = usePermissionGuard('manage messages');
+  const { isAuthorized: canManageSettings } = usePermissionGuard('manage settings');
+  const canViewContactMessages = canManageSettings === true;
   const [activeTab, setActiveTab] = useState<TabType>('inbox');
 
   // Read ?tab= query param on mount (e.g. from notification links)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') as TabType;
-    if (tab && ['inbox', 'sent', 'drafts', 'contact'].includes(tab)) {
-      setActiveTab(tab);
+    if (!tab || !['inbox', 'sent', 'drafts', 'contact'].includes(tab)) return;
+
+    if (tab === 'contact' && !canViewContactMessages) {
+      setActiveTab('inbox');
+      return;
     }
-  }, []);
+
+    setActiveTab(tab);
+  }, [canViewContactMessages]);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
@@ -97,6 +104,14 @@ export default function MessagesPage() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (activeTab !== 'contact' || canViewContactMessages) return;
+
+    setActiveTab('inbox');
+    setSelectedContactMessage(null);
+    setContactMessages([]);
+  }, [activeTab, canViewContactMessages]);
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -110,6 +125,11 @@ export default function MessagesPage() {
     setLoading(true);
     try {
       if (activeTab === 'contact') {
+        if (!canViewContactMessages) {
+          setContactMessages([]);
+          setActiveTab('inbox');
+          return;
+        }
         const response = await contactMessagesService.list();
         setContactMessages(response.data ?? []);
         return;
@@ -136,7 +156,7 @@ export default function MessagesPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, canViewContactMessages]);
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -309,6 +329,7 @@ export default function MessagesPage() {
   };
 
   const handleOpenContactMessage = async (msg: ContactMessage) => {
+    if (!canViewContactMessages) return;
     setSelectedContactMessage(msg);
     if (!msg.read) {
       try {
@@ -319,7 +340,7 @@ export default function MessagesPage() {
   };
 
   const executeDeleteContact = async () => {
-    if (!contactToDelete) return;
+    if (!canViewContactMessages || !contactToDelete) return;
     setIsDeleting(true);
     try {
       await contactMessagesService.delete(contactToDelete);
@@ -432,18 +453,20 @@ export default function MessagesPage() {
                 </div>
               </button>
 
-              <button
-                onClick={() => { setActiveTab('contact'); setSelectedMessage(null); setSelectedContactMessage(null); }}
-                className={cn(
-                  'w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors',
-                  activeTab === 'contact' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <PhoneCall className="w-5 h-5" />
-                  <span className="font-medium">رسائل التواصل</span>
-                </div>
-              </button>
+              {canViewContactMessages && (
+                <button
+                  onClick={() => { setActiveTab('contact'); setSelectedMessage(null); setSelectedContactMessage(null); }}
+                  className={cn(
+                    'w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors',
+                    activeTab === 'contact' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <PhoneCall className="w-5 h-5" />
+                    <span className="font-medium">رسائل التواصل</span>
+                  </div>
+                </button>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -453,7 +476,7 @@ export default function MessagesPage() {
           <Card className="min-h-[600px] flex flex-col">
 
             {/* ===== CONTACT TAB ===== */}
-            {activeTab === 'contact' && !selectedContactMessage && (
+            {activeTab === 'contact' && canViewContactMessages && !selectedContactMessage && (
               <>
                 <div className="p-4 border-b flex items-center gap-4">
                   <div className="relative flex-1 max-w-md">
@@ -504,7 +527,7 @@ export default function MessagesPage() {
             )}
 
             {/* ===== CONTACT DETAIL ===== */}
-            {activeTab === 'contact' && selectedContactMessage && (
+            {activeTab === 'contact' && canViewContactMessages && selectedContactMessage && (
               <div className="flex flex-col h-full">
                 <div className="p-4 border-b flex items-center justify-between">
                   <div className="flex items-center gap-3">
