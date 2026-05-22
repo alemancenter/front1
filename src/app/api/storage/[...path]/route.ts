@@ -9,7 +9,7 @@ export async function GET(
   const token = request.cookies.get('token')?.value;
 
   // This route only runs server-side, so use the internal URL to hit Go Fiber
-  // directly (plain HTTP on 127.0.0.1:8081, bypasses Nginx/SSL overhead).
+  // directly (plain HTTP on 127.0.0.1:8082, bypasses Nginx/SSL overhead).
   const base = API_CONFIG.INTERNAL_URL;
   const backendRoot = /\/api\/?$/.test(base) ? base.replace(/\/api\/?$/, '') : base;
 

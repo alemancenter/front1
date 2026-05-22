@@ -1277,7 +1277,7 @@ export default function SettingsPage() {
                         <li>افتح <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="underline">Google Cloud Console</a></li>
                         <li>أنشئ مشروعاً أو اختر موجوداً</li>
                         <li>APIs &amp; Services → Credentials → Create OAuth 2.0 Client</li>
-                        <li>أضف Redirect URI: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{settings.google_redirect_uri || 'http://localhost:8080/api/auth/google/callback'}</code></li>
+                        <li>أضف Redirect URI: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{settings.google_redirect_uri || 'http://localhost:8082/api/auth/google/callback'}</code></li>
                       </ol>
                     </div>
                   </div>
@@ -1301,7 +1301,7 @@ export default function SettingsPage() {
                       label="Redirect URI"
                       value={settings.google_redirect_uri || ''}
                       onChange={(e) => updateSetting('google_redirect_uri', e.target.value)}
-                      placeholder="http://localhost:8080/api/auth/google/callback"
+                      placeholder="http://localhost:8082/api/auth/google/callback"
                       dir="ltr"
                       className="sm:col-span-2"
                     />

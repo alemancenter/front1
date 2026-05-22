@@ -194,7 +194,7 @@ const securityHeaders = [
       `script-src ${scriptSrc}`,
       `script-src-elem ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https: http://127.0.0.1:8080 http://127.0.0.1:8081 http://localhost:8080 http://localhost:8081 http://localhost:3000",
+      "img-src 'self' data: blob: https: http://127.0.0.1:8082 http://127.0.0.1:8082 http://localhost:8082 http://localhost:8082 http://localhost:3000",
       "font-src 'self' data:",
 
       `connect-src ${connectSrc}`,
@@ -479,7 +479,7 @@ const nextConfig: NextConfig = {
       process.env.INTERNAL_API_URL ||
       process.env.SERVER_API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
-      'http://127.0.0.1:8081/api';
+      'http://127.0.0.1:8082/api';
 
     const apiUrl = rawBase.replace(/\/api\/?$/, '').replace(/\/+$/, '');
 

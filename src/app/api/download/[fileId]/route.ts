@@ -37,7 +37,7 @@ const getInternalApiBaseUrl = (): string => {
     process.env.API_INTERNAL_URL ||
     process.env.INTERNAL_API_URL ||
     process.env.SERVER_API_URL ||
-    'http://127.0.0.1:8081/api'
+    'http://127.0.0.1:8082/api'
   ).replace(/\/+$/, '');
 };
 
@@ -95,7 +95,7 @@ export async function GET(
    * Important:
    * This route runs on the Next.js server.
    * Therefore it must call the Go Fiber backend internally:
-   *   http://127.0.0.1:8081/api/articles/file/{id}/download
+   *   http://127.0.0.1:8082/api/articles/file/{id}/download
    *
    * Do NOT use NEXT_PUBLIC_API_URL here because it may be /backend-api.
    */

@@ -28,7 +28,7 @@ module.exports = {
         // ── Server-only (SSR) ─────────────────────────────────────────────
         // These are read at request time — safe to set here or in .env.production
         // Direct HTTP to Go Fiber, bypasses Nginx
-        API_INTERNAL_URL: 'http://127.0.0.1:8081/api',
+        API_INTERNAL_URL: 'http://127.0.0.1:8082/api',
         // Host header for SSR requests (tells Fiber which vhost)
         API_HOSTNAME: 'api.alemancenter.com',
         // Server-only API key for SSR requests (never exposed to browser)

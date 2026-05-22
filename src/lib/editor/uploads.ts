@@ -16,7 +16,7 @@ function normalizeUploadedUrl(url: string): string {
     const parsed = new URL(trimmed);
 
     // Backend often returns internal API URLs such as:
-    // http://127.0.0.1:8080/storage/images/x.webp
+    // http://127.0.0.1:8082/storage/images/x.webp
     // These must not be inserted into browser HTML because CSP blocks them and
     // production visitors cannot access private/internal backend hosts.
     if (parsed.pathname.startsWith('/storage/') || parsed.pathname.startsWith('/assets/')) {
