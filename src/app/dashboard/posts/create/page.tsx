@@ -146,7 +146,14 @@ export default function CreatePostPage() {
 
     try {
       setIsGeneratingAi(true);
-      const article = await articlesService.generateSEOArticle(title, 'post');
+      const selectedCategory = categories.find((item) => Number(item.id) === Number(formData.category_id));
+      const article = await articlesService.generateSEOArticle(title, 'post', {
+        country: selectedCountry,
+        country_code: COUNTRIES.find((country) => country.id === selectedCountry)?.code || 'jo',
+        category_id: formData.category_id,
+        category_name: selectedCategory?.name,
+        curriculum_context: 'توليد منشور تعليمي عربي آمن مرتبط بتصنيف الموقع ولا يقل عن 300 كلمة مع هدف 450 كلمة.',
+      });
       const content = article?.content_html || article?.content || '';
 
       if (content) {

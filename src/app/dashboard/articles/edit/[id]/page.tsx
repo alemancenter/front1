@@ -265,13 +265,26 @@ export default function EditArticlePage() {
 
   const handleAiGenerate = async () => {
     const title = formData.title.trim();
-    if (!title || title.length < 3) {
-      toast.error('يرجى إدخال عنوان المقالة أولاً (3 أحرف على الأقل)');
+    if (!title || title.length < 5) {
+      toast.error('يرجى إدخال عنوان المقالة أولاً (5 أحرف على الأقل)');
       return;
     }
     try {
       setIsGeneratingAi(true);
-      const article = await articlesService.generateSEOArticle(title);
+      const selectedClass = classes.find((item) => String((item as any).id) === String(formData.grade_level) || String((item as any).grade_level) === String(formData.grade_level));
+      const selectedSubject = subjects.find((item) => Number(item.id) === Number(formData.subject_id));
+      const selectedSemester = semesters.find((item) => Number(item.id) === Number(formData.semester_id));
+      const article = await articlesService.generateSEOArticle(title, 'article', {
+        country: selectedCountry,
+        country_code: COUNTRIES.find((country) => country.id === selectedCountry)?.code || 'jo',
+        grade_level: formData.grade_level,
+        grade_name: selectedClass?.grade_name,
+        subject_id: formData.subject_id,
+        subject_name: selectedSubject?.subject_name,
+        semester_id: formData.semester_id,
+        semester_name: selectedSemester?.semester_name,
+        curriculum_context: 'توليد محتوى تعليمي مرتبط بالصف والمادة والفصل المحدد في لوحة التحكم، مع حد أدنى 300 كلمة وهدف 450 كلمة.',
+      });
       if (article?.content_html) {
         // Set editor content
         contentRef.current = article.content_html;

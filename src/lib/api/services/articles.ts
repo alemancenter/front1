@@ -2,6 +2,20 @@ import { apiClient } from '../client';
 import { API_ENDPOINTS } from '../config';
 import type { Article, PaginatedResponse, SchoolClass, Subject, Semester } from '@/types';
 
+export type AIGenerationContext = {
+  country?: string | number;
+  country_code?: string;
+  grade_level?: string | number;
+  grade_name?: string;
+  subject_id?: string | number;
+  subject_name?: string;
+  semester_id?: string | number;
+  semester_name?: string;
+  category_id?: string | number;
+  category_name?: string;
+  curriculum_context?: string;
+};
+
 export interface SEOArticle {
   title: string;
   slug: string;
@@ -377,11 +391,20 @@ export const articlesService = {
    * until done/failed or the generation deadline is reached.
    * contentType: 'article' (default) produces educational links; 'post' produces general post links.
    */
-  async generateSEOArticle(title: string, contentType: 'article' | 'post' = 'article'): Promise<SEOArticle> {
+  async generateSEOArticle(title: string, contentType: 'article' | 'post' = 'article', context: AIGenerationContext = {}): Promise<SEOArticle> {
+    // Normalize context: backend expects string fields; numeric IDs must be converted.
+    // Drop falsy values (0, '', undefined, null) so omitempty fields are omitted.
+    const normalizedContext: Record<string, string> = {};
+    for (const [key, value] of Object.entries(context)) {
+      if (value !== undefined && value !== null && value !== '' && value !== 0) {
+        normalizedContext[key] = String(value);
+      }
+    }
+
     // 1. Submit job — returns within milliseconds
     const submit = await apiClient.post<{ job_id: string }>(
       API_ENDPOINTS.ARTICLES.AI_GENERATE,
-      { title, content_type: contentType },
+      { title, content_type: contentType, ...normalizedContext },
       { timeout: 15000, retries: 0 }
     );
     const jobId = (submit.data as any).job_id as string;

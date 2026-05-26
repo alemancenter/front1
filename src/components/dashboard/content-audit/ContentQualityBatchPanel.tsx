@@ -300,6 +300,9 @@ export default function ContentQualityBatchPanel() {
               <p className="mt-1 text-sm leading-7 text-muted-foreground">
                 لا تحتاج معرفة عدد المقالات أو المنشورات الضعيفة. اختر الوضع المناسب، وسيتم جلب العناصر الأعلى أولوية تلقائيًا من تقرير الجاهزية.
               </p>
+              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-6 text-amber-800">
+                قاعدة المعالجة المعتمدة: الحد الأدنى 300 كلمة تعليمية، والهدف الأفضل 450 كلمة، مع الالتزام بالمنهاج والصف والمادة أو التصنيف المرتبط بالمحتوى.
+              </p>
             </div>
             <Button variant="outline" onClick={loadReadinessSummary} isLoading={isLoadingReadiness} leftIcon={<RefreshCw className="h-4 w-4" />}>
               تحديث ملخص الجاهزية

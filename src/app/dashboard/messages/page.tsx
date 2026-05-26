@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Image from '@/components/common/AppImage';
 import {
   Mail,
@@ -25,6 +25,7 @@ import type { Message, ContactMessage, User, PaginatedResponse } from '@/types';
 import { messagesService, usersService, contactMessagesService } from '@/lib/api/services';
 import { toast } from 'react-hot-toast';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
+import { useAuthStore } from '@/store/useStore';
 import AccessDenied from '@/components/common/AccessDenied';
 
 type TabType = 'inbox' | 'sent' | 'drafts' | 'contact';
@@ -55,8 +56,25 @@ const formatDateTime = (value?: string) => {
 
 export default function MessagesPage() {
   const { isAuthorized } = usePermissionGuard('manage messages');
-  const { isAuthorized: canManageSettings } = usePermissionGuard('manage settings');
-  const canViewContactMessages = canManageSettings === true;
+  const { user, _hasHydrated } = useAuthStore();
+
+  // Strict check matching backend IsAdmin() — only 'Admin' / 'Super Admin' bypass,
+  // plus explicit 'manage settings' permission. Avoids the broad admin-role bypass
+  // in usePermissionGuard so contact messages stay restricted.
+  const canViewContactMessages = useMemo(() => {
+    if (!_hasHydrated || !user) return false;
+    const strictAdminRoles = ['admin', 'super_admin', 'super-admin'];
+    const isStrictAdmin = user.roles?.some(r => {
+      const name = (typeof r === 'string' ? r : r.name)?.toLowerCase() ?? '';
+      return strictAdminRoles.includes(name);
+    }) ?? false;
+    if (isStrictAdmin) return true;
+    const PERM = 'manage settings';
+    if (user.permissions?.some(p => (typeof p === 'string' ? p : (p as any).name) === PERM)) return true;
+    return user.roles?.some(role =>
+      role.permissions?.some(p => (typeof p === 'string' ? p : (p as any).name) === PERM)
+    ) ?? false;
+  }, [user, _hasHydrated]);
   const [activeTab, setActiveTab] = useState<TabType>('inbox');
 
   // Read ?tab= query param on mount (e.g. from notification links)
