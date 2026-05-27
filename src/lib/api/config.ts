@@ -79,6 +79,8 @@ export const API_ENDPOINTS = {
     CHANGE_EMAIL: '/auth/email/change',
     GOOGLE_REDIRECT: '/auth/google/redirect',
     GOOGLE_CALLBACK: '/auth/google/callback',
+    FACEBOOK_REDIRECT: '/auth/facebook/redirect',
+    FACEBOOK_CALLBACK: '/auth/facebook/callback',
   },
 
   // ========== DASHBOARD ==========

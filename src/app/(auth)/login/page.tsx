@@ -37,6 +37,14 @@ function AlertBox({ type, children }: { type: 'success' | 'error'; children: Rea
   return <div className={`min-w-0 overflow-hidden rounded-2xl border px-3 py-3 text-sm font-bold leading-7 sm:px-4 ${styles}`}>{children}</div>;
 }
 
+function FacebookMark() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true" fill="#1877F2">
+      <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+    </svg>
+  );
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,10 +52,12 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [serverError, setServerError] = useState<string>('');
   const [formData, setFormData] = useState({ email: '', password: '', remember: false });
   const justReset = searchParams.get('reset') === '1';
   const googleError = searchParams.get('error') === 'google_auth_failed';
+  const facebookError = searchParams.get('error') === 'facebook_auth_failed';
 
   useEffect(() => {
     const ret = searchParams.get('return');
@@ -59,6 +69,12 @@ function LoginContent() {
     setIsGoogleLoading(true);
     setServerError('');
     window.location.href = `${API_CONFIG.BASE_URL}/auth/google/redirect`;
+  };
+
+  const handleFacebookLogin = () => {
+    setIsFacebookLoading(true);
+    setServerError('');
+    window.location.href = `${API_CONFIG.BASE_URL}/auth/facebook/redirect`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,6 +124,7 @@ function LoginContent() {
       <form onSubmit={handleSubmit} className="min-w-0 space-y-3.5 sm:space-y-4">
         {justReset && <AlertBox type="success"><span className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> تم تحديث كلمة المرور بنجاح. يرجى تسجيل الدخول بكلمتك الجديدة.</span></AlertBox>}
         {googleError && <AlertBox type="error">فشل تسجيل الدخول باستخدام Google. يرجى المحاولة مرة أخرى.</AlertBox>}
+        {facebookError && <AlertBox type="error">فشل تسجيل الدخول باستخدام Facebook. يرجى المحاولة مرة أخرى.</AlertBox>}
         {serverError && <AlertBox type="error">{serverError}</AlertBox>}
 
         <Input label="البريد الإلكتروني" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="example@email.com" leftIcon={<Mail className="h-5 w-5" />} inputSize="lg" variant="filled" error={undefined} required />
@@ -142,10 +159,16 @@ function LoginContent() {
         <div className="relative flex justify-center text-sm"><span className="bg-white px-3 font-bold text-slate-500 sm:px-4">أو تابع باستخدام</span></div>
       </div>
 
-      <Button variant="outline" type="button" className="min-h-12 w-full min-w-0 rounded-2xl border-slate-200 bg-white px-3 py-3 text-sm font-black leading-6 text-slate-800 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:text-base [&>span]:min-w-0 [&>span]:whitespace-normal [&>span]:leading-6" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
-        {isGoogleLoading ? <div className="ml-2 h-5 w-5 animate-spin rounded-full border-b-2 border-current" /> : <GoogleMark />}
-        {isGoogleLoading ? 'جاري التحويل...' : 'تسجيل الدخول باستخدام Google'}
-      </Button>
+      <div className="space-y-3">
+        <Button variant="outline" type="button" className="min-h-12 w-full min-w-0 rounded-2xl border-slate-200 bg-white px-3 py-3 text-sm font-black leading-6 text-slate-800 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:text-base [&>span]:min-w-0 [&>span]:whitespace-normal [&>span]:leading-6" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
+          {isGoogleLoading ? <div className="ml-2 h-5 w-5 animate-spin rounded-full border-b-2 border-current" /> : <GoogleMark />}
+          {isGoogleLoading ? 'جاري التحويل...' : 'تسجيل الدخول باستخدام Google'}
+        </Button>
+        <Button variant="outline" type="button" className="min-h-12 w-full min-w-0 rounded-2xl border-slate-200 bg-white px-3 py-3 text-sm font-black leading-6 text-slate-800 hover:border-[#1877F2]/30 hover:bg-blue-50 hover:text-[#1877F2] sm:text-base [&>span]:min-w-0 [&>span]:whitespace-normal [&>span]:leading-6" onClick={handleFacebookLogin} disabled={isFacebookLoading}>
+          {isFacebookLoading ? <div className="ml-2 h-5 w-5 animate-spin rounded-full border-b-2 border-current" /> : <FacebookMark />}
+          {isFacebookLoading ? 'جاري التحويل...' : 'تسجيل الدخول باستخدام Facebook'}
+        </Button>
+      </div>
 
       <p className="mt-7 text-center text-sm font-bold text-slate-600">ليس لديك حساب؟ <Link href="/register" className="font-black text-blue-700 hover:underline">إنشاء حساب جديد</Link></p>
     </motion.div>

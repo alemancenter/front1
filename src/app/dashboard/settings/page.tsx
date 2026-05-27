@@ -89,6 +89,11 @@ interface SettingsData {
   google_client_secret?: string;
   google_redirect_uri?: string;
 
+  // Facebook OAuth
+  facebook_app_id?: string;
+  facebook_app_secret?: string;
+  facebook_redirect_uri?: string;
+
   // SEO
   meta_title?: string;
   meta_description?: string;
@@ -1302,6 +1307,53 @@ export default function SettingsPage() {
                       value={settings.google_redirect_uri || ''}
                       onChange={(e) => updateSetting('google_redirect_uri', e.target.value)}
                       placeholder="http://localhost:8082/api/auth/google/callback"
+                      dir="ltr"
+                      className="sm:col-span-2"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Facebook / Instagram OAuth</CardTitle>
+                  <CardDescription>إعدادات تسجيل الدخول عبر Facebook و Instagram — تُحفظ في قاعدة البيانات وملف .env</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-sm text-blue-800 dark:text-blue-300">
+                    <span className="text-base shrink-0">ℹ️</span>
+                    <div>
+                      <p className="font-medium">كيفية الحصول على بيانات Facebook OAuth</p>
+                      <ol className="text-xs mt-1 opacity-80 list-decimal list-inside space-y-0.5">
+                        <li>افتح <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer" className="underline">Facebook for Developers</a></li>
+                        <li>أنشئ تطبيقاً جديداً من نوع &quot;Consumer&quot;</li>
+                        <li>أضف منتج &quot;Facebook Login&quot; إلى التطبيق</li>
+                        <li>أضف Redirect URI: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{settings.facebook_redirect_uri || 'http://localhost:8082/api/auth/facebook/callback'}</code></li>
+                        <li>انسخ App ID و App Secret من إعدادات التطبيق الأساسية</li>
+                      </ol>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <Input
+                      label="App ID"
+                      value={settings.facebook_app_id || ''}
+                      onChange={(e) => updateSetting('facebook_app_id', e.target.value)}
+                      placeholder="123456789012345"
+                      dir="ltr"
+                    />
+                    <Input
+                      label="App Secret"
+                      type="password"
+                      value={settings.facebook_app_secret || ''}
+                      onChange={(e) => updateSetting('facebook_app_secret', e.target.value)}
+                      placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      dir="ltr"
+                    />
+                    <Input
+                      label="Redirect URI"
+                      value={settings.facebook_redirect_uri || ''}
+                      onChange={(e) => updateSetting('facebook_redirect_uri', e.target.value)}
+                      placeholder="http://localhost:8082/api/auth/facebook/callback"
                       dir="ltr"
                       className="sm:col-span-2"
                     />

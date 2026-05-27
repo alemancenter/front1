@@ -16,6 +16,10 @@ Allow: /ps/
 Allow: /about-us
 Allow: /contact
 Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /cookie-policy
+Allow: /disclaimer
 Allow: /copyright
 Allow: /editorial-policy
 Allow: /services
