@@ -4,7 +4,6 @@ import { useSettingsStore } from '@/store/useStore';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import StaticPageHeader from '@/components/common/StaticPageHeader';
 import { Mail, Globe, Shield } from 'lucide-react';
-import Link from 'next/link';
 
 const LAST_UPDATED = '16 مايو 2026';
 
@@ -15,7 +14,7 @@ export default function CookiePolicyPage() {
   const resolvedSiteName =
     (frontSettings.site_name ?? '').toString().trim() || storeSiteName?.trim() || 'موقعنا التعليمي';
   const resolvedSiteUrl =
-    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() || storeSiteUrl?.trim() || '';
+    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() || storeSiteUrl?.trim() || 'https://alemancenter.com';
   const resolvedContactEmail =
     (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() || storeSiteEmail?.trim() || '';
 
@@ -37,10 +36,8 @@ export default function CookiePolicyPage() {
           <div className="prose max-w-none text-base leading-8 text-slate-700 prose-headings:scroll-mt-28 prose-headings:font-black prose-headings:text-slate-900 prose-a:font-bold prose-a:text-blue-700 prose-ul:leading-8 md:text-[17px]">
             <p className="lead">آخر تحديث: {LAST_UPDATED}</p>
             <p>
-              توضح سياسة ملفات تعريف الارتباط هذه كيفية استخدام موقع <strong>{resolvedSiteName}</strong>
-              {resolvedSiteUrl && (
-                <> (<a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{resolvedSiteUrl}</a>)</>
-              )}{' '}
+              توضح سياسة ملفات تعريف الارتباط هذه كيفية استخدام موقع <strong>{resolvedSiteName}</strong>{' '}
+              (<a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{resolvedSiteUrl}</a>){' '}
               ملفات تعريف الارتباط (Cookies) وتقنيات التتبع المماثلة لتحسين تجربة المستخدم وتقديم خدمات مخصصة.
             </p>
 
@@ -171,26 +168,14 @@ export default function CookiePolicyPage() {
                   </a>
                 </div>
               )}
-              {resolvedSiteUrl && (
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
-                    {resolvedSiteUrl}
-                  </a>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Globe className="w-5 h-5" />
                 </div>
-              )}
-              {!resolvedContactEmail && !resolvedSiteUrl && (
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <Link href="/contact-us" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
-                    نموذج التواصل
-                  </Link>
-                </div>
-              )}
+                <a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                  {resolvedSiteUrl}
+                </a>
+              </div>
             </div>
           </div>
         </div>

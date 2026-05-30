@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
   const resolvedSiteUrl =
     (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() ||
     storeSiteUrl?.trim() ||
-    '';
+    'https://alemancenter.com';
 
   const resolvedContactEmail =
     (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() ||
@@ -90,21 +90,15 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <strong>الموقع الإلكتروني</strong> يشير إلى موقع <strong>{resolvedSiteName}</strong>، الذي يمكن الوصول إليه من{' '}
-                {resolvedSiteUrl ? (
-                  <a
-                    href={resolvedSiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                  >
-                    {resolvedSiteUrl}
-                    <ExternalLink className="inline h-3.5 w-3.5" />
-                  </a>
-                ) : (
-                  <Link href="/" className="text-blue-600 hover:underline">
-                    الصفحة الرئيسية
-                  </Link>
-                )}
+                <a
+                  href={resolvedSiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                >
+                  {resolvedSiteUrl}
+                  <ExternalLink className="inline h-3.5 w-3.5" />
+                </a>
               </li>
             </ul>
 
@@ -237,8 +231,11 @@ export default function PrivacyPolicyPage() {
               </li>
             </ul>
             <p>
-              لممارسة أي من هذه الحقوق، يُرجى التواصل معنا عبر البريد الإلكتروني أو نموذج التواصل المتاح
-              في الموقع. سنرد على طلبك خلال <strong>30 يومًا</strong> من تاريخ استلامه وفق ما تقتضيه الأنظمة
+              لممارسة أي من هذه الحقوق، يُرجى التواصل معنا عبر البريد الإلكتروني أو{' '}
+              <Link href="/contact-us" className="text-blue-600 hover:underline">
+                نموذج التواصل
+              </Link>
+              . سنرد على طلبك خلال <strong>30 يومًا</strong> من تاريخ استلامه وفق ما تقتضيه الأنظمة
               المعمول بها.
             </p>
             <p>

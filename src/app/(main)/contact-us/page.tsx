@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useSettingsStore } from '@/store/useStore';
+import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import StaticPageHeader from '@/components/common/StaticPageHeader';
 import {
   Mail,
@@ -42,13 +43,30 @@ declare global {
 }
 
 export default function ContactUsPage() {
-  const { siteName, siteEmail, siteUrl, contactEmail, contactPhone, contactAddress, socialLinks, recaptchaSiteKey } =
+  const frontSettings = useFrontSettings();
+  const { siteName, siteEmail, siteUrl, contactEmail, contactPhone, contactAddress, socialLinks, recaptchaSiteKey: storeRecaptchaKey } =
     useSettingsStore();
 
-  const resolvedContactEmail = contactEmail || siteEmail || '';
-  const resolvedSiteUrl = siteUrl || '';
-  const resolvedContactPhone = contactPhone || '';
-  const resolvedContactAddress = contactAddress || '';
+  // useFrontSettings is populated server-side so crawlers always see real values.
+  // useSettingsStore is the fallback populated after client hydration.
+  const resolvedContactEmail =
+    (frontSettings.contact_email ?? '').toString().trim() ||
+    (frontSettings.site_email ?? '').toString().trim() ||
+    contactEmail || siteEmail ||
+    'info@alemancenter.com';
+
+  const resolvedSiteUrl =
+    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() ||
+    siteUrl || 'https://alemancenter.com';
+
+  const resolvedContactPhone =
+    (frontSettings.contact_phone ?? '').toString().trim() || contactPhone || '';
+
+  const resolvedContactAddress =
+    (frontSettings.contact_address ?? '').toString().trim() || contactAddress || '';
+
+  const recaptchaSiteKey =
+    (frontSettings.recaptcha_site_key ?? '').toString().trim() || storeRecaptchaKey || '';
 
   const [formData, setFormData] = useState({
     name: '',
@@ -192,15 +210,13 @@ export default function ContactUsPage() {
                   <p className="text-slate-500 text-sm">تواصل معنا عبر البريد</p>
                 </div>
               </div>
-              {resolvedContactEmail ? (
-                <a
-                  href={`mailto:${resolvedContactEmail}`}
-                  className="flex items-center text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                >
-                  <Mail className="w-4 h-4 ml-2" />
-                  {resolvedContactEmail}
-                </a>
-              ) : null}
+              <a
+                href={`mailto:${resolvedContactEmail}`}
+                className="flex items-center text-slate-700 hover:text-blue-600 transition-colors font-medium"
+              >
+                <Mail className="w-4 h-4 ml-2" />
+                {resolvedContactEmail}
+              </a>
 
               {socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.whatsapp ? (
                 <div className="mt-5 pt-5 border-t border-slate-100">
