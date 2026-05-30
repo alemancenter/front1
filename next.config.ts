@@ -85,7 +85,6 @@ const googleAdScriptSources = [
   'https://www.googleadservices.com',
   'https://partner.googleadservices.com',
   'https://securepubads.g.doubleclick.net',
-  'https://cdn-cookieyes.com',
   'https://www.gstatic.com',
   'https://accounts.google.com',
   'https://*.adtrafficquality.google',
@@ -109,8 +108,6 @@ const googleAdConnectSources = [
   'https://securepubads.g.doubleclick.net',
   'https://region1.google-analytics.com',
   'https://region1.analytics.google.com',
-  'https://cdn-cookieyes.com',
-  'https://log.cookieyes.com',
   'https://accounts.google.com',
   'https://*.adtrafficquality.google',
   'https://fundingchoicesmessages.google.com',
@@ -186,7 +183,7 @@ const securityHeaders = [
 
       /*
        * AdSense/GTM-compatible CSP:
-       * - Consent Mode and CookieYes still run before ad loading.
+       * - Consent Mode runs before ad loading via our custom banner.
        * - unsafe-eval is controlled by NEXT_PUBLIC_ALLOW_UNSAFE_EVAL_FOR_ADS.
        *   Default is enabled because Google ad/measurement vendors may use eval-like
        *   constructs; set NEXT_PUBLIC_ALLOW_UNSAFE_EVAL_FOR_ADS=false to harden later.

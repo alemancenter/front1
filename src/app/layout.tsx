@@ -135,12 +135,6 @@ export default async function RootLayout({
     (marketingFlag !== 'false' && process.env.NODE_ENV === 'production');
   const gtmId = (process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T5G89XRM').toString().trim();
   const shouldLoadStandaloneGa = Boolean(gaId && !gtmId);
-  const cookieYesClientId = (
-    settings.cookieyes_id ||
-    process.env.NEXT_PUBLIC_COOKIEYES_CLIENT_ID ||
-    ''
-  ).toString().trim();
-
   const apiOrigin = (() => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL;
@@ -162,10 +156,9 @@ export default async function RootLayout({
           Google Consent Mode v2 — MUST be the very first script.
           Initialises dataLayer + gtag and sets all consent signals to "denied"
           before any Google tag (Analytics, AdSense) has a chance to load.
-          CookieYes reads this and calls gtag('consent','update',{...}) once
-          the user makes a choice, satisfying GCM's "Consent tab" requirement.
-          wait_for_update:500 gives CookieYes 500 ms to fire the update before
-          Google tags act on the default denied state.
+          Our custom banner calls gtag('consent','update',{...}) once the user
+          makes a choice. wait_for_update:500 gives the banner 500 ms to fire
+          before Google tags act on the default denied state.
         */}
         {marketingEnabled && (
           <Script id="google-consent-default" strategy="beforeInteractive">
@@ -184,19 +177,6 @@ export default async function RootLayout({
         )}
       </head>
       <body className="antialiased min-h-screen">
-        {/*
-          CookieYes is deferred away from the mobile critical path. Consent
-          defaults are already set in <head>; the CMP UI/script can load after
-          first paint without blocking FCP/LCP.
-        */}
-        {marketingEnabled && cookieYesClientId && (
-          <Script
-            id="cookieyes"
-            type="text/javascript"
-            src={`https://cdn-cookieyes.com/client_data/${cookieYesClientId}/script.js`}
-            strategy="lazyOnload"
-          />
-        )}
         {/* Google Tag Manager (noscript) */}
         {marketingEnabled && gtmId && (
           <noscript>
@@ -218,7 +198,7 @@ export default async function RootLayout({
           <GoogleAnalytics gaId={marketingEnabled && shouldLoadStandaloneGa ? gaId : ''} />
           <ThemeInitializer />
           <ToastProvider />
-          {!cookieYesClientId && <CookieConsentBanner />}
+          <CookieConsentBanner />
          {/* <ResourcePreloader /> */}
           {children}
         </FrontSettingsProvider>

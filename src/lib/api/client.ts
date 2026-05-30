@@ -381,12 +381,39 @@ class ApiClient {
     return decoded.length > 800 ? decoded.slice(0, 800) : decoded;
   }
 
+  private isAuthScreen(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    const path = window.location.pathname;
+    return (
+      path === '/login' ||
+      path.startsWith('/login/') ||
+      path === '/register' ||
+      path.startsWith('/register/') ||
+      path.startsWith('/forgot-password') ||
+      path.startsWith('/reset-password') ||
+      path.startsWith('/auth/google/callback') ||
+      path.startsWith('/auth/facebook/callback')
+    );
+  }
+
   /**
    * Refresh JWT token.
+   *
+   * Important: do not call /auth/refresh when the client has no known session.
+   * This prevents thousands of useless 400/401 refresh attempts on login/register pages.
    */
   private async refreshToken(): Promise<boolean> {
     try {
       const rt = this.refreshTokenValue;
+
+      if (typeof window !== 'undefined' && this.isAuthScreen()) {
+        return false;
+      }
+
+      if (!this.token && !rt) {
+        return false;
+      }
 
       const frontendApiKey =
         typeof window === 'undefined'
@@ -417,6 +444,10 @@ class ApiClient {
           await this.persistToken(newToken, newRefresh ?? rt ?? undefined);
           return true;
         }
+      }
+
+      if (response.status === 401 || response.status === 400) {
+        this.setLocalToken(null);
       }
 
       return false;

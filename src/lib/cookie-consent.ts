@@ -48,7 +48,7 @@ function updateGtagConsent(categories: ConsentCategory[]): void {
   });
 }
 
-// Implements window.getCkyConsent so AdUnit.tsx hasCkyConsent() works without CookieYes
+// Implements window.getCkyConsent so AdUnit.tsx hasCkyConsent() works with our custom banner
 function installConsentShim(categories: ConsentCategory[]): void {
   if (typeof window === 'undefined') return;
   const win = window as any;

@@ -35,7 +35,7 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
     // Attempt immediately (returning visitors who already accepted)
     tryInit();
 
-    // Re-attempt when CookieYes fires a consent update (first-time visitors)
+    // Re-attempt when our consent banner fires a consent update (first-time visitors)
     const onConsentUpdate = () => tryInit();
     window.addEventListener('ckyConsentUpdate', onConsentUpdate);
 

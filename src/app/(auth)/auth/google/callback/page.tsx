@@ -14,37 +14,40 @@ function GoogleCallbackContent() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const token = searchParams.get('token');
       const errorParam = searchParams.get('error');
+      const legacyToken = searchParams.get('token');
+
+      // Security hardening: never keep OAuth tokens in the browser URL.
+      // The backend now authenticates the user through HttpOnly cookies and redirects here without ?token=.
+      if (typeof window !== 'undefined' && window.location.search) {
+        window.history.replaceState({}, document.title, '/auth/google/callback');
+      }
 
       if (errorParam) {
         setError('فشل تسجيل الدخول باستخدام Google. يرجى المحاولة مرة أخرى.');
-        setTimeout(() => router.push('/login'), 3000);
+        setTimeout(() => router.push('/login?error=google_auth_failed'), 3000);
         return;
       }
 
-      if (token) {
-        try {
-          // Store the access token and sync the HttpOnly cookie used by Next routes.
-          await apiClient.persistToken(token);
-
-          // Get user data
-          const user = await authService.me();
-          login(user);
-
-          // Clear security violation flags on successful login
-          localStorage.removeItem('security_violation_attempts');
-          localStorage.removeItem('security_banned');
-
-          // Redirect to home or dashboard
-          router.push('/');
-        } catch (err) {
-          console.error('Failed to get user data:', err);
-          setError('فشل في جلب بيانات المستخدم. يرجى المحاولة مرة أخرى.');
-          setTimeout(() => router.push('/login'), 3000);
+      try {
+        // Backward compatibility only: if an old backend still sends ?token= once,
+        // store it then immediately clean the URL. New backend path does not use this.
+        if (legacyToken) {
+          await apiClient.persistToken(legacyToken);
+        } else {
+          await apiClient.restoreFromSession();
         }
-      } else {
-        setError('لم يتم العثور على رمز المصادقة.');
+
+        const user = await authService.me(true);
+        login(user);
+
+        localStorage.removeItem('security_violation_attempts');
+        localStorage.removeItem('security_banned');
+
+        router.replace('/');
+      } catch (err) {
+        console.error('Failed to finish Google login:', err);
+        setError('فشل في جلب بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
         setTimeout(() => router.push('/login'), 3000);
       }
     };

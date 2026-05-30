@@ -12,7 +12,7 @@ type Props = {
  * The script loads after the page's critical work. Data collection is gated by
  * the consent signals set in
  * layout.tsx <head>: analytics_storage defaults to "denied" and only becomes
- * "granted" after CookieYes fires gtag('consent','update',{...}).
+ * "granted" after our consent banner fires gtag('consent','update',{...}).
  * No _ga / _gid cookies are written while analytics_storage is denied.
  */
 export default function GoogleAnalytics({ gaId }: Props) {

@@ -30,18 +30,6 @@ export default function PrivacyPolicyPage() {
     '';
 
   const openConsentPreferences = () => {
-    const win = window as Window & {
-      ckyShowPreferenceCenter?: () => void;
-      ckyShowConsent?: () => void;
-      CookieYes?: { renew?: () => void; show?: () => void };
-    };
-
-    if (typeof win.ckyShowPreferenceCenter === 'function') { win.ckyShowPreferenceCenter(); return; }
-    if (typeof win.ckyShowConsent === 'function') { win.ckyShowConsent(); return; }
-    if (typeof win.CookieYes?.renew === 'function') { win.CookieYes.renew(); return; }
-    if (typeof win.CookieYes?.show === 'function') { win.CookieYes.show(); return; }
-
-    // Fall back to our custom consent banner
     window.dispatchEvent(new CustomEvent('openCookieConsent'));
   };
 

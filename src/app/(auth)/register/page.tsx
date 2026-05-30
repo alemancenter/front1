@@ -102,6 +102,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     if (!validateForm()) return;
     if (emailStatus === 'taken' || emailPreflight?.can_register === false) return;
     if (emailStatus === 'checking') return;
