@@ -22,9 +22,14 @@ async function getPublicSettings(): Promise<Record<string, string | null>> {
 const ADSENSE_CLIENT_PATTERN = /^ca-pub-\d+$/;
 
 const resolveAdsenseClient = (settings: Record<string, string | null>): string => {
-  const value = (settings.adsense_client || process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '')
-    .toString()
-    .trim();
+  // PRIORITY ORDER (AdSense policy: only ONE ca-pub-* per domain):
+  // 1. NEXT_PUBLIC_ADSENSE_CLIENT env var  — set in frontend.env.production, overrides DB
+  // 2. settings.adsense_client             — value from backend API / database
+  // Using the env var as the primary source guarantees the same ID on every page,
+  // even if the database returns a stale or incorrect value on specific routes.
+  const envValue = (process.env.NEXT_PUBLIC_ADSENSE_CLIENT || '').toString().trim();
+  const dbValue  = (settings.adsense_client || '').toString().trim();
+  const value    = ADSENSE_CLIENT_PATTERN.test(envValue) ? envValue : dbValue;
   return ADSENSE_CLIENT_PATTERN.test(value) ? value : '';
 };
 

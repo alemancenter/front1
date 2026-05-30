@@ -11,6 +11,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
+    // NOTE: members page loads content client-side via API (team list).
+    // Googlebot may see an empty page on first render. noindex prevents
+    // an empty page from lowering the site quality score for AdSense.
+    // Remove noindex once SSR/SSG is implemented for this page.
+    robots: { index: false, follow: false },
     alternates: {
       canonical: '/members',
     },
