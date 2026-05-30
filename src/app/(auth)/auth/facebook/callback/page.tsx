@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/useStore';
 import { authService } from '@/lib/api/services';
 import { apiClient } from '@/lib/api/client';
 
+const TOKEN_PARAM_NAMES = ['token', 'access_token', 'auth_token', 'bearer'];
+
 function FacebookCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,8 +17,17 @@ function FacebookCallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       const errorParam = searchParams.get('error');
-      const legacyToken = searchParams.get('token');
 
+      let legacyToken: string | null = null;
+      for (const name of TOKEN_PARAM_NAMES) {
+        const val = searchParams.get(name);
+        if (val && val.length >= 20) {
+          legacyToken = val;
+          break;
+        }
+      }
+
+      // Security: strip OAuth params from the visible URL immediately
       if (typeof window !== 'undefined' && window.location.search) {
         window.history.replaceState({}, document.title, '/auth/facebook/callback');
       }
@@ -31,17 +42,37 @@ function FacebookCallbackContent() {
         if (legacyToken) {
           await apiClient.persistToken(legacyToken);
         } else {
-          await apiClient.restoreFromSession();
+          // Backend set an HttpOnly cookie — restore token from it.
+          // Retry once after a short delay: cookie may not be flushed yet.
+          let restored = await apiClient.restoreFromSession();
+
+          if (!restored) {
+            await new Promise((r) => setTimeout(r, 600));
+            restored = await apiClient.restoreFromSession();
+          }
+
+          if (!restored) {
+            throw new Error(
+              'لم يتم استلام بيانات المصادقة من الخادم. ' +
+              'يرجى التحقق من إعدادات Facebook OAuth في لوحة التحكم.'
+            );
+          }
         }
 
         const user = await authService.me(true);
         login(user);
+
         localStorage.removeItem('security_violation_attempts');
         localStorage.removeItem('security_banned');
+
         router.replace('/');
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to finish Facebook login:', err);
-        setError('فشل في جلب بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+        setError(
+          err?.message?.includes('استلام بيانات المصادقة')
+            ? err.message
+            : 'فشل في جلب بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.'
+        );
         setTimeout(() => router.push('/login'), 3000);
       }
     };
