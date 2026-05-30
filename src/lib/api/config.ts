@@ -189,6 +189,8 @@ export const API_ENDPOINTS = {
     SHOW_PUBLIC: (id: number | string) => `/articles/${id}`,
     AD_STATUS: (id: number | string) => `/articles/${id}/ad-status`,
     DOWNLOAD: (id: number | string) => `/articles/file/${id}/download`,
+    DOWNLOAD_URL: (id: number | string) => `/articles/file/${id}/download-url`,
+    SIGNED_DOWNLOAD: '/articles/download',
     STATS: '/dashboard/articles/stats',
     LIST: '/dashboard/articles',
     CREATE: '/dashboard/articles/create',
