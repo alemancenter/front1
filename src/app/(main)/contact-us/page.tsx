@@ -75,12 +75,7 @@ export default function ContactUsPage() {
       return;
     }
 
-    if (!recaptchaSiteKey) {
-      toast.error('نموذج التواصل غير مُهيأ حالياً');
-      return;
-    }
-
-    if (!recaptchaToken) {
+    if (recaptchaSiteKey && !recaptchaToken) {
       toast.error('يرجى إكمال التحقق أولاً');
       return;
     }
@@ -402,25 +397,21 @@ export default function ContactUsPage() {
                   </div>
                 </div>
 
-                {recaptchaSiteKey ? (
+                {recaptchaSiteKey && (
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <div className="min-h-[78px]">
                       <div ref={recaptchaContainerRef} />
                     </div>
                     {resolvedSiteUrl && (
-                    <a
-                      href={resolvedSiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
-                    >
-                      {siteName || resolvedSiteUrl}
-                    </a>
-                  )}
-                  </div>
-                ) : (
-                  <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-amber-900 text-sm">
-                    نموذج التواصل غير مُهيأ حالياً. يرجى ضبط `recaptcha_site_key` من لوحة التحكم.
+                      <a
+                        href={resolvedSiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                      >
+                        {siteName || resolvedSiteUrl}
+                      </a>
+                    )}
                   </div>
                 )}
 
@@ -428,7 +419,7 @@ export default function ContactUsPage() {
                   <Button 
                     type="submit" 
                     isLoading={isSubmitting}
-                    disabled={isSubmitting || !recaptchaSiteKey || !recaptchaToken}
+                    disabled={isSubmitting || Boolean(recaptchaSiteKey && !recaptchaToken)}
                     leftIcon={<Send className="w-4 h-4 ml-2" />}
                     className="h-auto w-full rounded-xl px-8 py-3 text-base sm:w-auto"
                   >

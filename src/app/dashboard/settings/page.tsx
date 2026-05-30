@@ -39,6 +39,7 @@ import { settingsService } from '@/lib/api/services/settings';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
 import { extractSlotId, buildAdSlotValue } from '@/lib/adsense';
+import { revalidateFrontSettings } from '@/app/actions/revalidate-settings';
 
 // Tabs configuration
 const tabs = [
@@ -203,7 +204,12 @@ export default function SettingsPage() {
 
       await apiClient.post(API_ENDPOINTS.SETTINGS.UPDATE, changedSettings);
       setOriginalSettings({ ...settings });
-      
+
+      // Immediately invalidate the front-settings cache so ALL pages pick up
+      // the new adsense_client (and any other changed setting) without waiting
+      // for the 5-minute ISR window to expire.
+      await revalidateFrontSettings();
+
       // Update global store if site_name changed
       if (changedSettings.site_name) {
         setSiteName(changedSettings.site_name);

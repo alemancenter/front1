@@ -10,6 +10,7 @@ import DeferredMarketingTags from '@/components/performance/DeferredMarketingTag
 import { getFrontSettings } from '@/lib/front-settings';
 import { FrontSettingsProvider } from '@/components/front-settings/FrontSettingsProvider';
 import StoreHydration from '@/components/StoreHydration';
+import CookieConsentBanner from '@/components/CookieConsentBanner';
 
 // Cairo is self-hosted through @font-face in globals.css.
 // No next/font/google dependency is used, so builds remain deterministic on locked-down servers.
@@ -212,6 +213,7 @@ export default async function RootLayout({
           <GoogleAnalytics gaId={marketingEnabled && shouldLoadStandaloneGa ? gaId : ''} />
           <ThemeInitializer />
           <ToastProvider />
+          {!cookieYesClientId && <CookieConsentBanner />}
          {/* <ResourcePreloader /> */}
           {children}
         </FrontSettingsProvider>

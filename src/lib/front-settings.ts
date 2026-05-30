@@ -30,9 +30,11 @@ export const getFrontSettings = cache(async (
   const cacheControl = options.cache === 'no-store' ? 'no-cache' : undefined;
 
   try {
-    const fetchOptions: RequestInit & { next?: { revalidate?: number | false } } = {
+    const fetchOptions: RequestInit & { next?: { revalidate?: number | false; tags?: string[] } } = {
       ...(options.cache ? { cache: options.cache } : {}),
-      ...(options.cache === 'no-store' ? {} : { next: { revalidate: options.revalidate ?? 3600 } }),
+      ...(options.cache === 'no-store'
+        ? {}
+        : { next: { revalidate: options.revalidate ?? 300, tags: ['front-settings'] } }),
       headers: {
         ...getSSRHeaders(countryId),
         ...(cacheControl ? { 'Cache-Control': cacheControl } : {}),

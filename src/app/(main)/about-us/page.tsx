@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useSettingsStore } from '@/store/useStore';
+import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import StaticPageHeader from '@/components/common/StaticPageHeader';
 import {
   Eye,
@@ -8,7 +9,7 @@ import {
   Gift,
   School,
   BookOpen,
-  Newspaper, // for 'news'
+  Newspaper,
   Filter,
   Heart,
   Award,
@@ -16,13 +17,28 @@ import {
   Lightbulb,
   Mail,
   Globe,
+  Building2,
+  MapPin,
+  Phone,
+  ExternalLink,
+  Link as LinkIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AboutUsPage() {
-  const { siteName, siteEmail, siteUrl } = useSettingsStore();
-  const resolvedSiteName = siteName?.trim() || 'الإيمان التعليمي';
-  const contactEmail = siteEmail || '';
-  const contactSiteUrl = siteUrl || '';
+  const frontSettings = useFrontSettings();
+  const { siteName: storeSiteName, siteEmail: storeSiteEmail, siteUrl: storeSiteUrl, contactEmail: storeContactEmail, contactPhone: storeContactPhone, contactAddress: storeContactAddress } = useSettingsStore();
+
+  const resolvedSiteName =
+    (frontSettings.site_name ?? '').toString().trim() || storeSiteName?.trim() || 'موقعنا التعليمي';
+  const resolvedSiteUrl =
+    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() || storeSiteUrl?.trim() || '';
+  const resolvedContactEmail =
+    (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() || storeContactEmail?.trim() || storeSiteEmail?.trim() || '';
+  const resolvedContactPhone =
+    (frontSettings.contact_phone ?? '').toString().trim() || storeContactPhone?.trim() || '';
+  const resolvedContactAddress =
+    (frontSettings.contact_address ?? '').toString().trim() || storeContactAddress?.trim() || '';
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f5f7fb] font-sans">
@@ -33,9 +49,70 @@ export default function AboutUsPage() {
         description={`مرحبًا بكم في موقع ${resolvedSiteName}، مساحة تعليمية مصممة لدعم الطلاب والمعلمين بمحتوى واضح وسهل الوصول.`}
       />
 
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8 sm:py-10 lg:py-12">
-        {/* Vision & Mission */}
+
+        {/* هوية المؤسسة */}
+        <div className="mb-8 rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm sm:p-6 lg:mb-10">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">هويتنا</h2>
+          </div>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            <strong>{resolvedSiteName}</strong> منصة تعليمية إلكترونية أردنية متخصصة في توفير المحتوى
+            التعليمي للطلاب والمعلمين وفق المنهاج الدراسي الأردني. نعمل على تقديم موارد تعليمية
+            عالية الجودة تشمل المناهج الدراسية وأوراق العمل والاختبارات والأخبار التربوية.
+          </p>
+          <div className="flex flex-col gap-3 text-sm">
+            {resolvedSiteUrl && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <Globe className="w-4 h-4 text-blue-500 shrink-0" />
+                <a
+                  href={resolvedSiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-600 transition-colors font-medium inline-flex items-center gap-1"
+                >
+                  {resolvedSiteUrl}
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
+            {resolvedContactEmail && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <Mail className="w-4 h-4 text-blue-500 shrink-0" />
+                <a href={`mailto:${resolvedContactEmail}`} className="hover:text-blue-600 transition-colors font-medium">
+                  {resolvedContactEmail}
+                </a>
+              </div>
+            )}
+            {resolvedContactPhone && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <Phone className="w-4 h-4 text-blue-500 shrink-0" />
+                <a href={`tel:${resolvedContactPhone}`} className="hover:text-blue-600 transition-colors font-medium" dir="ltr">
+                  {resolvedContactPhone}
+                </a>
+              </div>
+            )}
+            {resolvedContactAddress && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
+                <span>{resolvedContactAddress}</span>
+              </div>
+            )}
+            {!resolvedContactEmail && !resolvedSiteUrl && (
+              <div className="flex items-center gap-2 text-slate-600">
+                <LinkIcon className="w-4 h-4 text-blue-500 shrink-0" />
+                <Link href="/contact-us" className="hover:text-blue-600 transition-colors font-medium">
+                  نموذج التواصل المباشر
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* الرؤية والرسالة */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           <div className="h-full rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
             <div className="mb-4 flex items-center gap-3">
@@ -64,7 +141,7 @@ export default function AboutUsPage() {
           </div>
         </div>
 
-        {/* What We Offer */}
+        {/* ما نقدم */}
         <div className="mb-8 rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm sm:p-6 lg:mb-10">
           <div className="mb-6 flex items-center gap-3">
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
@@ -73,8 +150,7 @@ export default function AboutUsPage() {
             <h2 className="text-xl font-bold text-slate-800">ماذا نقدم؟</h2>
           </div>
           <p className="text-slate-600 mb-8">
-            يقدم موقع {resolvedSiteName} مجموعة واسعة من الخدمات التعليمية المصممة بعناية، بما في
-            ذلك:
+            يقدم موقع {resolvedSiteName} مجموعة واسعة من الخدمات التعليمية المصممة بعناية، بما في ذلك:
           </p>
           <div className="grid gap-5 md:grid-cols-2">
             <div className="flex gap-4">
@@ -83,9 +159,7 @@ export default function AboutUsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 mb-2">صفوف دراسية</h3>
-                <p className="text-slate-600 text-sm">
-                  تغطي جميع الصفوف من التمهيدي حتى الصف الثاني عشر.
-                </p>
+                <p className="text-slate-600 text-sm">تغطي جميع الصفوف من التمهيدي حتى الصف الثاني عشر.</p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -127,7 +201,7 @@ export default function AboutUsPage() {
           </div>
         </div>
 
-        {/* Our Values */}
+        {/* قيمنا */}
         <div className="mb-8 rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm sm:p-6 lg:mb-10">
           <div className="mb-6 flex items-center gap-3">
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
@@ -151,9 +225,7 @@ export default function AboutUsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 mb-2">التعاون</h3>
-                <p className="text-slate-600 text-sm">
-                  تعزيز بيئة تعليمية تدعم الشراكة بين الطلاب والمعلمين.
-                </p>
+                <p className="text-slate-600 text-sm">تعزيز بيئة تعليمية تدعم الشراكة بين الطلاب والمعلمين.</p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -162,15 +234,13 @@ export default function AboutUsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 mb-2">الإبداع</h3>
-                <p className="text-slate-600 text-sm">
-                  استخدام أدوات وتقنيات حديثة لتحسين تجربة المستخدم.
-                </p>
+                <p className="text-slate-600 text-sm">استخدام أدوات وتقنيات حديثة لتحسين تجربة المستخدم.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Contact Info (Reusable) */}
+        {/* التواصل */}
         <div className="rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm sm:p-6">
           <div className="mb-6 flex items-center gap-3">
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
@@ -182,31 +252,32 @@ export default function AboutUsPage() {
             إذا كانت لديك أي أسئلة أو اقتراحات، يسعدنا أن نتواصل معك عبر:
           </p>
           <div className="flex flex-col gap-4">
-            {contactEmail && (
+            {resolvedContactEmail ? (
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                   <Mail className="w-5 h-5" />
                 </div>
-                <a
-                  href={`mailto:${contactEmail}`}
-                  className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                >
-                  {contactEmail}
+                <a href={`mailto:${resolvedContactEmail}`} className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                  {resolvedContactEmail}
                 </a>
               </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <Link href="/contact-us" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                  نموذج التواصل
+                </Link>
+              </div>
             )}
-            {contactSiteUrl && (
+            {resolvedSiteUrl && (
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                   <Globe className="w-5 h-5" />
                 </div>
-                <a
-                  href={contactSiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                >
-                  {contactSiteUrl}
+                <a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                  {resolvedSiteUrl}
                 </a>
               </div>
             )}
@@ -216,4 +287,3 @@ export default function AboutUsPage() {
     </div>
   );
 }
-

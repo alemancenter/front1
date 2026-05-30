@@ -40,7 +40,7 @@ export default function HomeHero({ country, siteName, showHeroButtons, trendingS
   const resolvedName = siteName || 'موقع الألمان';
 
   return (
-    <section className="relative overflow-hidden bg-[#f7fbff] px-3 pb-10 pt-[104px] sm:px-5 lg:pt-[124px]" dir="rtl">
+    <section className="isolate relative overflow-hidden bg-[#f7fbff] px-3 pb-10 pt-[104px] sm:px-5 lg:pt-[124px]" dir="rtl">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_55%,#ffffff_100%)]" />
       <div className="relative mx-auto max-w-[1540px]">
         <div className="relative min-h-[760px] overflow-hidden rounded-[2rem] border border-blue-100/80 bg-white shadow-2xl shadow-blue-100/60 sm:min-h-[780px] lg:min-h-[620px] lg:rounded-[2.3rem]">
