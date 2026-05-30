@@ -5,12 +5,32 @@ const REFRESH_COOKIE = 'refresh_token';
 const ACCESS_MAX_AGE = 60 * 60 * 24;      // 1 day  (matches JWT expiry)
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 7; // 7 days (matches refresh JWT expiry)
 
-// GET — restore in-memory token from HttpOnly cookie (called on page refresh)
+// Fallback cookie names the Go backend might use instead of "token"
+const ACCESS_COOKIE_FALLBACKS = ['jwt', 'access_token', 'auth_token', 'bearer'];
+
+function isValidToken(val: string | undefined): val is string {
+  return typeof val === 'string' && val.length >= 20 && val.length <= 4096;
+}
+
+// GET — restore in-memory token from HttpOnly cookie (called on page refresh / OAuth callback)
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get(ACCESS_COOKIE)?.value ?? '';
+  // Primary cookie name
+  let token = request.cookies.get(ACCESS_COOKIE)?.value ?? '';
+
+  // Fallback: check alternative names the backend might use
+  if (!isValidToken(token)) {
+    for (const name of ACCESS_COOKIE_FALLBACKS) {
+      const val = request.cookies.get(name)?.value;
+      if (isValidToken(val)) {
+        token = val;
+        break;
+      }
+    }
+  }
+
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value ?? '';
 
-  if (!token || token.length < 20 || token.length > 4096) {
+  if (!isValidToken(token)) {
     return NextResponse.json({ authenticated: false });
   }
 

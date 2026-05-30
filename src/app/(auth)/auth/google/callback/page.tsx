@@ -6,6 +6,9 @@ import { useAuthStore } from '@/store/useStore';
 import { authService } from '@/lib/api/services';
 import { apiClient } from '@/lib/api/client';
 
+// Token URL parameter names different backends might use
+const TOKEN_PARAM_NAMES = ['token', 'access_token', 'auth_token', 'bearer'];
+
 function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,10 +18,18 @@ function GoogleCallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       const errorParam = searchParams.get('error');
-      const legacyToken = searchParams.get('token');
 
-      // Security hardening: never keep OAuth tokens in the browser URL.
-      // The backend now authenticates the user through HttpOnly cookies and redirects here without ?token=.
+      // Check all common token parameter names the backend might use
+      let legacyToken: string | null = null;
+      for (const name of TOKEN_PARAM_NAMES) {
+        const val = searchParams.get(name);
+        if (val && val.length >= 20) {
+          legacyToken = val;
+          break;
+        }
+      }
+
+      // Security: strip any OAuth params from the visible URL immediately
       if (typeof window !== 'undefined' && window.location.search) {
         window.history.replaceState({}, document.title, '/auth/google/callback');
       }
@@ -30,12 +41,26 @@ function GoogleCallbackContent() {
       }
 
       try {
-        // Backward compatibility only: if an old backend still sends ?token= once,
-        // store it then immediately clean the URL. New backend path does not use this.
         if (legacyToken) {
+          // Backend sent token directly in redirect URL
           await apiClient.persistToken(legacyToken);
         } else {
-          await apiClient.restoreFromSession();
+          // Backend set an HttpOnly cookie — restore token from it.
+          // Retry once after a short delay: cookie may not be flushed yet
+          // immediately after the redirect response.
+          let restored = await apiClient.restoreFromSession();
+
+          if (!restored) {
+            await new Promise((r) => setTimeout(r, 600));
+            restored = await apiClient.restoreFromSession();
+          }
+
+          if (!restored) {
+            throw new Error(
+              'لم يتم استلام بيانات المصادقة من الخادم. ' +
+              'يرجى التحقق من إعدادات Google OAuth في لوحة التحكم.'
+            );
+          }
         }
 
         const user = await authService.me(true);
@@ -45,9 +70,13 @@ function GoogleCallbackContent() {
         localStorage.removeItem('security_banned');
 
         router.replace('/');
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to finish Google login:', err);
-        setError('فشل في جلب بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+        setError(
+          err?.message?.includes('استلام بيانات المصادقة')
+            ? err.message
+            : 'فشل في جلب بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.'
+        );
         setTimeout(() => router.push('/login'), 3000);
       }
     };
