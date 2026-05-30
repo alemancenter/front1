@@ -220,12 +220,14 @@ const dashboardSecurityHeaders = securityHeaders;
 
 const publicPageCacheHeaders = [
   /*
-   * Suitable for public visitor pages.
-   * Browser can revalidate, while shared/server caches can keep short-lived copies.
+   * s-maxage=30: Nginx proxy cache holds HTML for 30 seconds max.
+   * stale-while-revalidate=15: serve stale for 15 extra seconds while fetching fresh.
+   * Total stale window = 45 seconds — safe enough to survive a deployment restart
+   * without serving old HTML chunks that no longer exist in the new build.
    */
   {
     key: 'Cache-Control',
-    value: 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+    value: 'public, max-age=0, s-maxage=30, stale-while-revalidate=15',
   },
 ];
 

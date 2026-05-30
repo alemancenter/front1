@@ -5,6 +5,7 @@ export const metadata = {
   title: 'سياسة التحرير والمراجعة | الإيمان التعليمي',
   description: 'تعرف على طريقة اختيار ومراجعة وتحديث المحتوى التعليمي المنشور على موقع الإيمان التعليمي.',
   robots: { index: true, follow: true },
+  alternates: { canonical: '/editorial-policy' },
 };
 
 export default function EditorialPolicyPage() {

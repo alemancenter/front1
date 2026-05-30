@@ -142,7 +142,7 @@ export default function ServicesPage() {
                     <span className="text-sm text-muted-foreground">نظام الاشتراك</span>
                     <span className="font-bold text-primary">{service.price}</span>
                   </div>
-                  <Link href="/contact">
+                  <Link href="/contact-us">
                     <Button className="w-full" rightIcon={<ArrowLeft className="w-4 h-4" />}>
                       اطلب الخدمة
                     </Button>
@@ -167,7 +167,7 @@ export default function ServicesPage() {
             يمكنك التواصل معنا لطلب ملفات خاصة، أو باقات للمدارس والمراكز التعليمية، أو اقتراح خدمات
             جديدة تناسب احتياجاتك التعليمية.
           </p>
-          <Link href="/contact">
+          <Link href="/contact-us">
             <Button
               size="lg"
               rightIcon={<ArrowLeft className="w-5 h-5" />}

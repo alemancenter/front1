@@ -5,6 +5,7 @@ export const metadata = {
   title: 'حقوق الملكية وطلبات الإزالة | الإيمان التعليمي',
   description: 'سياسة حقوق الملكية الفكرية وآلية طلب تعديل أو إزالة أي محتوى أو ملف تعليمي من موقع الإيمان التعليمي.',
   robots: { index: true, follow: true },
+  alternates: { canonical: '/copyright' },
 };
 
 export default function CopyrightPage() {
