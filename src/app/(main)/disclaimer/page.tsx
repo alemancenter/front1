@@ -3,7 +3,7 @@
 import { useSettingsStore } from '@/store/useStore';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import StaticPageHeader from '@/components/common/StaticPageHeader';
-import { Mail, Globe, ShieldAlert, FileWarning, AlertTriangle } from 'lucide-react';
+import { Mail, Globe, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 const LAST_UPDATED = '16 مايو 2026';

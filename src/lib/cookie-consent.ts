@@ -60,7 +60,7 @@ function dispatchConsentEvent(): void {
   window.dispatchEvent(new CustomEvent('ckyConsentUpdate'));
 }
 
-export function applyConsent(decision: 'accepted' | 'rejected', custom?: ConsentCategory[]): void {
+export function applyConsent(decision: 'accepted' | 'rejected' | 'custom', custom?: ConsentCategory[]): void {
   const categories: ConsentCategory[] =
     decision === 'accepted' ? ALL_CATEGORIES :
     decision === 'rejected' ? NECESSARY_ONLY :

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { X, Shield, Check, ChevronLeft } from 'lucide-react';
+import { Shield, Check, ChevronLeft } from 'lucide-react';
 import { applyConsent, rehydrateConsent, getStoredConsent } from '@/lib/cookie-consent';
 
 type View = 'banner' | 'settings';
