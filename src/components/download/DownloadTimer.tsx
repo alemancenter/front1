@@ -56,11 +56,13 @@ export default function DownloadTimer({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isPreparingDownload, setIsPreparingDownload] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+
   const hasTrackedRef = useRef(false);
   const { isAuthenticated, user } = useAuthStore();
+  const pathname = usePathname();
+
   const isProfileComplete = !!(user?.country && user?.gender);
   const isEmailVerified = !!user?.email_verified_at;
-  const pathname = usePathname();
 
   useEffect(() => {
     setViews(viewsCount || 0);
@@ -77,22 +79,32 @@ export default function DownloadTimer({
           API_ENDPOINTS.FILES.INCREMENT_VIEW(fileId),
           { database: countryCode }
         );
-        const payload = (response as any)?.data?.data || (response as any)?.data || response;
+
+        const payload =
+          (response as any)?.data?.data ||
+          (response as any)?.data ||
+          response;
+
         if (typeof payload?.views_count === 'number') {
           setViews(payload.views_count);
         }
+
         if (typeof payload?.download_count === 'number') {
           setDownloads(payload.download_count);
         }
       } catch {
-        // Silent fail - view counting is not critical
+        // View counting is not critical.
       }
     };
 
     trackView();
   }, [fileId, countryCode]);
 
-  const resolveDownloadErrorMessage = (status?: number, code?: string, message?: string): string => {
+  const resolveDownloadErrorMessage = (
+    status?: number,
+    code?: string,
+    message?: string
+  ): string => {
     const normalizedCode = (code || '').toUpperCase();
 
     if (normalizedCode === 'AUTH_REQUIRED' || status === 401) {
@@ -117,58 +129,85 @@ export default function DownloadTimer({
 
     return message || 'تعذر تجهيز رابط التحميل حاليًا. يرجى المحاولة مرة أخرى.';
   };
- const downloadFileInsidePage = async (downloadUrl: string, fallbackFileName: string) => {
-  const response = await fetch(downloadUrl, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      Accept: '*/*',
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-    cache: 'no-store',
-  });
 
-  if (!response.ok) {
-    let message = 'تعذر تحميل الملف حاليًا.';
+  const getFileNameFromContentDisposition = (
+    disposition: string | null,
+    fallbackFileName: string
+  ): string => {
+    if (!disposition) return fallbackFileName || 'alemancenter-file';
 
-    try {
-      const data = await response.json();
-      message = data?.message || message;
-    } catch {
-      // Non-JSON response
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1].trim());
+      } catch {
+        return utf8Match[1].trim();
+      }
     }
 
-    throw new Error(message);
-  }
+    const normalMatch = disposition.match(/filename="?([^";]+)"?/i);
+    if (normalMatch?.[1]) {
+      return normalMatch[1].trim();
+    }
 
-  const blob = await response.blob();
+    return fallbackFileName || 'alemancenter-file';
+  };
 
-  let finalFileName = fallbackFileName || 'alemancenter-file';
+  const downloadFileInsidePage = async (
+    downloadUrl: string,
+    fallbackFileName: string
+  ) => {
+    const response = await fetch(downloadUrl, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: '*/*',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      cache: 'no-store',
+    });
 
-  const disposition = response.headers.get('content-disposition') || '';
-  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-  const normalMatch = disposition.match(/filename="?([^";]+)"?/i);
+    if (!response.ok) {
+      let message = 'تعذر تحميل الملف حاليًا.';
 
-  if (utf8Match?.[1]) {
-    finalFileName = decodeURIComponent(utf8Match[1]);
-  } else if (normalMatch?.[1]) {
-    finalFileName = normalMatch[1];
-  }
+      try {
+        const data = await response.json();
+        message = data?.message || message;
+      } catch {
+        // Response is not JSON.
+      }
 
-  const objectUrl = window.URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
+      throw new Error(message);
+    }
 
-  anchor.href = objectUrl;
-  anchor.download = finalFileName;
-  anchor.style.display = 'none';
+    const blob = await response.blob();
 
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
+    const finalFileName = getFileNameFromContentDisposition(
+      response.headers.get('content-disposition'),
+      fallbackFileName || fileName || 'alemancenter-file'
+    );
 
-  window.URL.revokeObjectURL(objectUrl);
-};
+    const objectUrl = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = objectUrl;
+    anchor.download = finalFileName;
+    anchor.style.display = 'none';
+    anchor.rel = 'noopener';
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    // Delay revoke for better compatibility with mobile browsers.
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(objectUrl);
+    }, 1000);
+  };
+
   const handleDownload = async () => {
+    if (isPreparingDownload) return;
+
     setDownloadError(null);
 
     if (!isAuthenticated) {
@@ -186,29 +225,22 @@ export default function DownloadTimer({
       return;
     }
 
-    /*
-     * Custom download URLs are assumed to be already safe public/signed URLs.
-     * Normal article files always go through /api/download/{id}/prepare first,
-     * so the user never sees a protected backend API route or raw JSON response.
-     */
-   if (customDownloadUrl) {
-  setIsPreparingDownload(true);
-
-  try {
-    await downloadFileInsidePage(customDownloadUrl, fileName || 'alemancenter-file');
-  } catch (error: any) {
-    setDownloadError(error?.message || 'حدث خطأ أثناء تحميل الملف.');
-  } finally {
-    setIsPreparingDownload(false);
-  }
-
-  return;
-}
-
     setIsPreparingDownload(true);
 
     try {
-      const prepareUrl = `/api/download/${encodeURIComponent(String(fileId))}/prepare?countryCode=${encodeURIComponent(countryCode)}`;
+      if (customDownloadUrl) {
+        await downloadFileInsidePage(
+          customDownloadUrl,
+          fileName || 'alemancenter-file'
+        );
+
+        setDownloads((current) => current + 1);
+        return;
+      }
+
+      const prepareUrl = `/api/download/${encodeURIComponent(
+        String(fileId)
+      )}/prepare?countryCode=${encodeURIComponent(countryCode)}`;
 
       const response = await fetch(prepareUrl, {
         method: 'GET',
@@ -220,7 +252,9 @@ export default function DownloadTimer({
         cache: 'no-store',
       });
 
-      const payload = (await response.json().catch(() => null)) as PrepareDownloadResponse | null;
+      const payload = (await response
+        .json()
+        .catch(() => null)) as PrepareDownloadResponse | null;
 
       if (!response.ok || !payload?.success || !payload?.download_url) {
         const message = resolveDownloadErrorMessage(
@@ -238,9 +272,19 @@ export default function DownloadTimer({
         return;
       }
 
-      window.location.assign(payload.download_url);
-    } catch {
-      setDownloadError('حدث خطأ في الاتصال أثناء تجهيز رابط التحميل. يرجى المحاولة مرة أخرى.');
+      await downloadFileInsidePage(
+        payload.download_url,
+        fileName || 'alemancenter-file'
+      );
+
+      setDownloads((current) => current + 1);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'حدث خطأ في الاتصال أثناء تحميل الملف. يرجى المحاولة مرة أخرى.';
+
+      setDownloadError(message);
     } finally {
       setIsPreparingDownload(false);
     }
@@ -248,19 +292,29 @@ export default function DownloadTimer({
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 max-w-2xl mx-auto text-center">
-      {/* File Icon */}
       <div className="w-20 h-20 bg-primary/5 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
         <FileText size={40} />
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-4 break-words whitespace-normal leading-relaxed px-4 bidi-plaintext" dir="auto">{fileName}</h2>
+      <h2
+        className="text-2xl font-bold text-gray-900 mb-4 break-words whitespace-normal leading-relaxed px-4 bidi-plaintext"
+        dir="auto"
+      >
+        {fileName}
+      </h2>
+
       <div className="flex items-center justify-center gap-4 text-gray-500 mb-4 text-sm">
-        <span className="bg-gray-100 px-3 py-1 rounded-full">{fileType || 'FILE'}</span>
+        <span className="bg-gray-100 px-3 py-1 rounded-full">
+          {fileType || 'FILE'}
+        </span>
         <span>•</span>
         <span>{formatFileSize(fileSize)}</span>
       </div>
+
       <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-600 mb-8">
-        <span className="bg-gray-100 px-3 py-1 rounded-full">المشاهدات: {views.toLocaleString('ar-EG')}</span>
+        <span className="bg-gray-100 px-3 py-1 rounded-full">
+          المشاهدات: {views.toLocaleString('ar-EG')}
+        </span>
         <span className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-1">
           <Eye size={12} className="text-gray-400" />
           التنزيلات: {downloads.toLocaleString('ar-EG')}
@@ -287,10 +341,15 @@ export default function DownloadTimer({
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Lock size={24} />
             </div>
-            <h3 className="text-lg font-bold text-amber-900">تفعيل البريد الإلكتروني مطلوب</h3>
+
+            <h3 className="text-lg font-bold text-amber-900">
+              تفعيل البريد الإلكتروني مطلوب
+            </h3>
+
             <p className="mt-2 text-sm leading-7 text-amber-800">
               يجب تفعيل بريدك الإلكتروني قبل تحميل الملفات المرفقة.
             </p>
+
             <Link
               href="/verify-email"
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-amber-700 sm:w-auto"
@@ -311,7 +370,7 @@ export default function DownloadTimer({
             ) : (
               <Download size={24} />
             )}
-            {isPreparingDownload ? 'جاري تجهيز رابط التحميل...' : 'تحميل الملف الآن'}
+            {isPreparingDownload ? 'جاري تحميل الملف...' : 'تحميل الملف الآن'}
           </button>
         )}
 
@@ -320,29 +379,37 @@ export default function DownloadTimer({
         </p>
       </div>
 
-      {/* Auth Modal */}
       {showAuthModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAuthModal(false);
+          }}
         >
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative text-center animate-in fade-in zoom-in-95 duration-200">
             <button
+              type="button"
               onClick={() => setShowAuthModal(false)}
               className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X size={20} />
             </button>
 
-            {/* Icon */}
             <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock size={32} />
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-2">تسجيل الدخول مطلوب</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              تسجيل الدخول مطلوب
+            </h3>
+
             <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-              يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.<br />
+              يجب أن تكون عضواً مسجلاً للتمكن من تحميل الملفات.
+              <br />
               سجّل الدخول أو أنشئ حساباً مجاناً للوصول إلى جميع المواد.
             </p>
 
@@ -354,6 +421,7 @@ export default function DownloadTimer({
                 <LogIn size={18} />
                 تسجيل الدخول
               </Link>
+
               <Link
                 href={`/register?return=${encodeURIComponent(pathname)}`}
                 className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary/5 transition-all"
@@ -370,20 +438,26 @@ export default function DownloadTimer({
         </div>
       )}
 
-      {/* Profile Completion Modal */}
       {showProfileModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowProfileModal(false);
+          }}
         >
           <div className="relative w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <button
+              type="button"
               onClick={() => setShowProfileModal(false)}
               className="absolute -top-3 -left-3 z-10 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X size={16} />
             </button>
+
             <ProfileCompletionPrompt
               description="يرجى تحديد دولتك وجنسك لتتمكن من تحميل الملفات"
               onComplete={() => setShowProfileModal(false)}
@@ -392,11 +466,11 @@ export default function DownloadTimer({
         </div>
       )}
 
-      {/* Safety Note */}
       <div className="mt-8 pt-6 border-t border-gray-100 flex items-start gap-3 text-right">
         <AlertCircle className="text-gray-400 shrink-0 mt-0.5" size={18} />
         <p className="text-xs text-gray-400 leading-relaxed">
-          يتم فحص جميع الملفات آلياً للتأكد من خلوها من الفيروسات. في حال واجهت أي مشكلة في التحميل، يرجى الإبلاغ عنها فوراً.
+          يتم فحص جميع الملفات آلياً للتأكد من خلوها من الفيروسات. في حال واجهت
+          أي مشكلة في التحميل، يرجى الإبلاغ عنها فوراً.
         </p>
       </div>
     </div>
@@ -405,8 +479,10 @@ export default function DownloadTimer({
 
 function formatFileSize(bytes: number): string {
   if (!bytes) return '0 B';
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
