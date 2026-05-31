@@ -93,7 +93,9 @@ export async function generateMetadata(
   let description = '';
   let categoryName: string | null = null;
 
-  const category = categories.find((c: any) => c.id.toString() === categoryId);
+  const category = categories.find(
+    (c: any) => c.slug === categoryId || c.id.toString() === categoryId
+  );
   if (category) {
     categoryName = category.name;
     title = `${categoryName} - المقالات`;
@@ -195,12 +197,18 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       getPublicSettings(),
     ]);
 
+    // Resolve slug or numeric string in URL to the actual numeric category ID
+    const resolvedCategory = categories.find(
+      (c: any) => c.slug === categoryId || c.id.toString() === categoryId
+    );
+    const numericCategoryId = resolvedCategory?.id;
+
     const postsRes = await postsService.getAll({
       country: countryCode,
       page,
       per_page: 12,
       search: search || undefined,
-      category_id: categoryId, // Strict category filter
+      category_id: numericCategoryId,
       sort_by,
       sort_dir,
     }, { next: { revalidate: 60 } } as any);
@@ -232,8 +240,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           to: 0
         };
 
-    // Find active category for UI
-    const activeCategory = categories.find((c: any) => c.id.toString() === categoryId);
+    // Find active category for UI (reuse already-resolved category)
+    const activeCategory = resolvedCategory;
     const pageTitle = activeCategory
       ? `تصفح ${activeCategory.name}`
       : (search ? `نتائج البحث عن "${search}"` : 'تصفح القسم');

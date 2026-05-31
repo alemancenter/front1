@@ -53,6 +53,11 @@ const buildRemotePatterns = () => {
     { protocol: 'https', hostname: 'lh3.googleusercontent.com', pathname: '/**' },
     { protocol: 'https', hostname: '*.googleusercontent.com', pathname: '/**' },
 
+    // Facebook profile pictures
+    { protocol: 'https', hostname: 'platform-lookaside.fbsbx.com', pathname: '/**' },
+    { protocol: 'https', hostname: '*.fbsbx.com', pathname: '/**' },
+    { protocol: 'https', hostname: '*.fbcdn.net', pathname: '/**' },
+
     // Local development
     { protocol: 'http', hostname: 'localhost', port: apiPort, pathname: '/**' },
     { protocol: 'http', hostname: '127.0.0.1', port: apiPort, pathname: '/**' },
