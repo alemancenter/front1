@@ -23,7 +23,7 @@ export default function TermsOfServicePage() {
       <div className="container mx-auto px-4 py-8 lg:py-12">
         <div className="rounded-[1.25rem] border border-blue-100/70 bg-white p-5 shadow-sm sm:p-6 md:p-8">
           <div className="prose max-w-none text-base leading-8 text-slate-700 prose-headings:scroll-mt-28 prose-headings:font-black prose-headings:text-slate-900 prose-a:font-bold prose-a:text-blue-700 prose-ul:leading-8 md:text-[17px]">
-            <p className="lead">آخر تحديث: 18 يناير 2025</p>
+            <p className="lead">آخر تحديث: 30 مايو 2026</p>
             <p>
               يرجى قراءة شروط وأحكام الاستخدام بعناية قبل استخدام موقع <strong>{resolvedSiteName}</strong> (<a href={contactSiteUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{contactSiteUrl}</a>). باستخدامك لهذا الموقع، فإنك توافق على الالتزام بالشروط والأحكام التالية.
             </p>

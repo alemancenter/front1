@@ -18,7 +18,7 @@ export const STANDARD_CATEGORIES = [
   { id: 'plans', name: 'خطط الدراسة', slug: 'plans', icon: NotebookTabs, tone: 'blue' },
   { id: 'papers', name: 'أوراق عمل', slug: 'papers', icon: FileText, tone: 'emerald' },
   { id: 'tests', name: 'اختبارات', slug: 'tests', icon: FileCheck2, tone: 'rose' },
-  { id: 'books', name: 'كتب المدرسة', slug: 'books', icon: BookMarked, tone: 'amber' },
+  { id: 'books', name: 'المقررات الدراسية', slug: 'books', icon: BookMarked, tone: 'amber' },
   { id: 'records', name: 'السجلات', slug: 'records', icon: ClipboardList, tone: 'cyan' },
 ];
 

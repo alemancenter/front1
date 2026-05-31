@@ -23,7 +23,7 @@ const getCategoryName = (id: string) => {
     'plans': 'خطط الدراسة',
     'papers': 'أوراق عمل',
     'tests': 'اختبارات',
-    'books': 'كتب المدرسة',
+    'books': 'المقررات الدراسية',
     'records': 'السجلات',
   };
   return categories[id] || 'المقالات';
