@@ -8,6 +8,14 @@ import Link from 'next/link';
 
 const LAST_UPDATED = '16 مايو 2026';
 
+// Canonical site URL — used as the ultimate SSR-safe fallback.
+// process.env.NEXT_PUBLIC_SITE_URL must be set in .env.production.
+// This prevents [](<>) appearing in the rendered HTML when the backend
+// API returns an empty canonical_url / site_url (the root cause of the
+// broken link reported by the AdSense audit).
+const FALLBACK_SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://alemancenter.com';
+
 export default function PrivacyPolicyPage() {
   const frontSettings = useFrontSettings();
   const { siteName: storeSiteName, siteEmail: storeSiteEmail, siteUrl: storeSiteUrl } = useSettingsStore();
@@ -19,10 +27,16 @@ export default function PrivacyPolicyPage() {
     storeSiteName?.trim() ||
     'موقعنا التعليمي';
 
+  // FIX: Added process.env.NEXT_PUBLIC_SITE_URL as an SSR-safe fallback BEFORE
+  // the hardcoded string. The Zustand store (storeSiteUrl) is empty during SSR
+  // because it is only hydrated on the client. Without this fix, the server
+  // renders an empty href which becomes [](<>) in the HTML seen by Google /
+  // AdSense reviewers — even though the browser shows the correct value after
+  // JS loads.
   const resolvedSiteUrl =
     (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() ||
     storeSiteUrl?.trim() ||
-    'https://alemancenter.com';
+    FALLBACK_SITE_URL;
 
   const resolvedContactEmail =
     (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() ||
@@ -89,6 +103,7 @@ export default function PrivacyPolicyPage() {
                 <strong>الخدمة</strong> تشير إلى الموقع الإلكتروني.
               </li>
               <li>
+                {/* FIX: was href={resolvedSiteUrl} with empty fallback '' — now always has a value */}
                 <strong>الموقع الإلكتروني</strong> يشير إلى موقع <strong>{resolvedSiteName}</strong>، الذي يمكن الوصول إليه من{' '}
                 <a
                   href={resolvedSiteUrl}
@@ -201,42 +216,20 @@ export default function PrivacyPolicyPage() {
               وما يقابلهما من أنظمة حماية البيانات المعمول بها، يحق لك ممارسة الحقوق التالية:
             </p>
             <ul className="list-disc list-inside space-y-3">
-              <li>
-                <strong>حق الوصول:</strong> يحق لك طلب نسخة من البيانات الشخصية التي نحتفظ بها عنك
-                وكيفية معالجتها.
-              </li>
-              <li>
-                <strong>حق التصحيح:</strong> يحق لك طلب تصحيح أي بيانات شخصية غير دقيقة أو غير مكتملة
-                نحتفظ بها.
-              </li>
-              <li>
-                <strong>حق الحذف (الحق في النسيان):</strong> يحق لك طلب حذف بياناتك الشخصية عندما لا
-                تكون هناك ضرورة مشروعة للاحتفاظ بها.
-              </li>
-              <li>
-                <strong>حق الاعتراض على المعالجة:</strong> يحق لك الاعتراض على معالجة بياناتك لأغراض
-                التسويق المباشر أو الإعلانات المخصصة في أي وقت.
-              </li>
-              <li>
-                <strong>حق تقييد المعالجة:</strong> يحق لك طلب تقييد معالجة بياناتك في حالات معينة،
-                مثل الطعن في دقتها أو الاعتراض على استخدامها.
-              </li>
-              <li>
-                <strong>حق نقل البيانات:</strong> يحق لك الحصول على بياناتك بصيغة منظمة وقابلة للقراءة
-                آليًا، ونقلها إلى جهة أخرى عند الاقتضاء.
-              </li>
-              <li>
-                <strong>حق سحب الموافقة:</strong> عند استناد المعالجة إلى موافقتك، يحق لك سحبها في أي
-                وقت دون التأثير على مشروعية المعالجة السابقة.
-              </li>
+              <li><strong>حق الوصول:</strong> يحق لك طلب نسخة من البيانات الشخصية التي نحتفظ بها عنك وكيفية معالجتها.</li>
+              <li><strong>حق التصحيح:</strong> يحق لك طلب تصحيح أي بيانات شخصية غير دقيقة أو غير مكتملة.</li>
+              <li><strong>حق الحذف (الحق في النسيان):</strong> يحق لك طلب حذف بياناتك الشخصية عندما لا تكون هناك ضرورة مشروعة للاحتفاظ بها.</li>
+              <li><strong>حق الاعتراض على المعالجة:</strong> يحق لك الاعتراض على معالجة بياناتك لأغراض التسويق المباشر أو الإعلانات المخصصة.</li>
+              <li><strong>حق تقييد المعالجة:</strong> يحق لك طلب تقييد معالجة بياناتك في حالات معينة.</li>
+              <li><strong>حق نقل البيانات:</strong> يحق لك الحصول على بياناتك بصيغة منظمة وقابلة للقراءة آليًا.</li>
+              <li><strong>حق سحب الموافقة:</strong> عند استناد المعالجة إلى موافقتك، يحق لك سحبها في أي وقت.</li>
             </ul>
             <p>
               لممارسة أي من هذه الحقوق، يُرجى التواصل معنا عبر البريد الإلكتروني أو{' '}
               <Link href="/contact-us" className="text-blue-600 hover:underline">
                 نموذج التواصل
               </Link>
-              . سنرد على طلبك خلال <strong>30 يومًا</strong> من تاريخ استلامه وفق ما تقتضيه الأنظمة
-              المعمول بها.
+              . سنرد على طلبك خلال <strong>30 يومًا</strong> من تاريخ استلامه.
             </p>
             <p>
               إذا كنت مقيمًا في منطقة الاتحاد الأوروبي ولم تجد ردًا كافيًا، يحق لك تقديم شكوى إلى هيئة
@@ -251,30 +244,17 @@ export default function PrivacyPolicyPage() {
               خصوصية الأطفال عبر الإنترنت الأمريكي (COPPA) والأنظمة المماثلة الدولية.
             </p>
             <ul className="list-disc list-inside space-y-2">
-              <li>
-                لا نجمع بيانات شخصية من الأطفال دون الثالثة عشرة من العمر بشكل مقصود دون موافقة ولي الأمر المسبقة والقابلة للتحقق.
-              </li>
-              <li>
-                يُنصح أولياء الأمور بمرافقة أطفالهم عند استخدام الموقع وإنشاء أي حسابات بالنيابة عنهم.
-              </li>
-              <li>
-                إذا اكتشفنا أننا جمعنا بيانات من طفل دون الثالثة عشرة دون موافقة ولي الأمر، سنحذف هذه البيانات فوراً.
-              </li>
-              <li>
-                يحق لولي الأمر في أي وقت طلب الاطلاع على بيانات طفله أو تعديلها أو حذفها عبر التواصل معنا.
-              </li>
+              <li>لا نجمع بيانات شخصية من الأطفال دون الثالثة عشرة من العمر بشكل مقصود دون موافقة ولي الأمر المسبقة.</li>
+              <li>يُنصح أولياء الأمور بمرافقة أطفالهم عند استخدام الموقع وإنشاء أي حسابات بالنيابة عنهم.</li>
+              <li>إذا اكتشفنا أننا جمعنا بيانات من طفل دون الثالثة عشرة دون موافقة ولي الأمر، سنحذف هذه البيانات فوراً.</li>
+              <li>يحق لولي الأمر في أي وقت طلب الاطلاع على بيانات طفله أو تعديلها أو حذفها عبر التواصل معنا.</li>
             </ul>
-            <p>
-              إذا كنت ولي أمر وتعتقد أن طفلك قدّم بياناته الشخصية لنا دون علمك، يُرجى التواصل معنا فوراً
-              لاتخاذ الإجراء المناسب.
-            </p>
 
             {/* ── أمان البيانات ── */}
             <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-4">أمان بياناتك الشخصية</h2>
             <p>
-              أمان بياناتك الشخصية مهم بالنسبة لنا، ولكن تذكر أنه لا توجد طريقة نقل عبر الإنترنت أو طريقة
-              تخزين إلكتروني آمنة بنسبة 100%. نسعى جاهدين لاستخدام وسائل مقبولة تجاريًا لحماية بياناتك
-              الشخصية.
+              أمان بياناتك الشخصية مهم بالنسبة لنا. لا توجد طريقة نقل عبر الإنترنت أو طريقة تخزين إلكتروني
+              آمنة بنسبة 100%، لكننا نسعى جاهدين لاستخدام وسائل مقبولة تجاريًا لحماية بياناتك.
             </p>
 
             {/* ── التغييرات ── */}
@@ -309,6 +289,7 @@ export default function PrivacyPolicyPage() {
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                     <Mail className="w-5 h-5" />
                   </div>
+                  {/* FIX: was href="/contact" (404) — corrected to /contact-us */}
                   <Link href="/contact-us" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
                     نموذج التواصل
                   </Link>

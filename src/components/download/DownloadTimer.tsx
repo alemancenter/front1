@@ -117,7 +117,57 @@ export default function DownloadTimer({
 
     return message || 'تعذر تجهيز رابط التحميل حاليًا. يرجى المحاولة مرة أخرى.';
   };
+ const downloadFileInsidePage = async (downloadUrl: string, fallbackFileName: string) => {
+  const response = await fetch(downloadUrl, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Accept: '*/*',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    cache: 'no-store',
+  });
 
+  if (!response.ok) {
+    let message = 'تعذر تحميل الملف حاليًا.';
+
+    try {
+      const data = await response.json();
+      message = data?.message || message;
+    } catch {
+      // Non-JSON response
+    }
+
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+
+  let finalFileName = fallbackFileName || 'alemancenter-file';
+
+  const disposition = response.headers.get('content-disposition') || '';
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  const normalMatch = disposition.match(/filename="?([^";]+)"?/i);
+
+  if (utf8Match?.[1]) {
+    finalFileName = decodeURIComponent(utf8Match[1]);
+  } else if (normalMatch?.[1]) {
+    finalFileName = normalMatch[1];
+  }
+
+  const objectUrl = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = objectUrl;
+  anchor.download = finalFileName;
+  anchor.style.display = 'none';
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.URL.revokeObjectURL(objectUrl);
+};
   const handleDownload = async () => {
     setDownloadError(null);
 
@@ -141,10 +191,19 @@ export default function DownloadTimer({
      * Normal article files always go through /api/download/{id}/prepare first,
      * so the user never sees a protected backend API route or raw JSON response.
      */
-    if (customDownloadUrl) {
-      window.location.assign(customDownloadUrl);
-      return;
-    }
+   if (customDownloadUrl) {
+  setIsPreparingDownload(true);
+
+  try {
+    await downloadFileInsidePage(customDownloadUrl, fileName || 'alemancenter-file');
+  } catch (error: any) {
+    setDownloadError(error?.message || 'حدث خطأ أثناء تحميل الملف.');
+  } finally {
+    setIsPreparingDownload(false);
+  }
+
+  return;
+}
 
     setIsPreparingDownload(true);
 

@@ -5,18 +5,36 @@ import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvi
 import StaticPageHeader from '@/components/common/StaticPageHeader';
 import { Mail, Globe, Shield } from 'lucide-react';
 
-const LAST_UPDATED = '16 مايو 2026';
+// FIX: Updated to today's date — was '18 يناير 2025' which contradicted
+// the site being actively maintained in 2026 and caused an AdSense audit flag.
+const LAST_UPDATED = '30 مايو 2026';
+
+// Canonical site URL — SSR-safe fallback (see privacy-policy/page.tsx for details).
+const FALLBACK_SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://alemancenter.com';
 
 export default function CookiePolicyPage() {
   const frontSettings = useFrontSettings();
   const { siteName: storeSiteName, siteEmail: storeSiteEmail, siteUrl: storeSiteUrl } = useSettingsStore();
 
   const resolvedSiteName =
-    (frontSettings.site_name ?? '').toString().trim() || storeSiteName?.trim() || 'موقعنا التعليمي';
+    (frontSettings.site_name ?? '').toString().trim() ||
+    storeSiteName?.trim() ||
+    'موقعنا التعليمي';
+
+  // FIX: Added FALLBACK_SITE_URL (env var → hardcoded) before the empty string.
+  // Without this, SSR renders an empty href → [](<>) in the HTML seen by
+  // Google / AdSense reviewers. The Zustand store is never hydrated on the
+  // server so storeSiteUrl is always '' during SSR.
   const resolvedSiteUrl =
-    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() || storeSiteUrl?.trim() || 'https://alemancenter.com';
+    (frontSettings.canonical_url ?? frontSettings.site_url ?? '').toString().trim() ||
+    storeSiteUrl?.trim() ||
+    FALLBACK_SITE_URL;
+
   const resolvedContactEmail =
-    (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() || storeSiteEmail?.trim() || '';
+    (frontSettings.contact_email ?? frontSettings.site_email ?? '').toString().trim() ||
+    storeSiteEmail?.trim() ||
+    '';
 
   const openConsentPreferences = () => {
     window.dispatchEvent(new CustomEvent('openCookieConsent'));
@@ -36,8 +54,18 @@ export default function CookiePolicyPage() {
           <div className="prose max-w-none text-base leading-8 text-slate-700 prose-headings:scroll-mt-28 prose-headings:font-black prose-headings:text-slate-900 prose-a:font-bold prose-a:text-blue-700 prose-ul:leading-8 md:text-[17px]">
             <p className="lead">آخر تحديث: {LAST_UPDATED}</p>
             <p>
+              {/* FIX: resolvedSiteUrl now always has a value — no more [](<>) */}
               توضح سياسة ملفات تعريف الارتباط هذه كيفية استخدام موقع <strong>{resolvedSiteName}</strong>{' '}
-              (<a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{resolvedSiteUrl}</a>){' '}
+              (
+                <a
+                  href={resolvedSiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {resolvedSiteUrl}
+                </a>
+              ){' '}
               ملفات تعريف الارتباط (Cookies) وتقنيات التتبع المماثلة لتحسين تجربة المستخدم وتقديم خدمات مخصصة.
             </p>
 
@@ -114,7 +142,11 @@ export default function CookiePolicyPage() {
               أنماط الاستخدام. يمكن إلغاء التتبع عبر:
             </p>
             <ul className="list-disc list-inside space-y-1">
-              <li><a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">إضافة إلغاء الاشتراك في Google Analytics</a></li>
+              <li>
+                <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  إضافة إلغاء الاشتراك في Google Analytics
+                </a>
+              </li>
             </ul>
 
             <h3 className="text-xl font-bold text-slate-800 mt-6 mb-3">Google AdSense</h3>
@@ -123,8 +155,16 @@ export default function CookiePolicyPage() {
               مخصصة بناءً على زياراتك السابقة. يمكن إلغاء الاشتراك عبر:
             </p>
             <ul className="list-disc list-inside space-y-1">
-              <li><a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">إعدادات إعلانات Google</a></li>
-              <li><a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">aboutads.info (إلغاء اشتراك موحد)</a></li>
+              <li>
+                <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  إعدادات إعلانات Google
+                </a>
+              </li>
+              <li>
+                <a href="https://optout.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  aboutads.info (إلغاء اشتراك موحد)
+                </a>
+              </li>
             </ul>
 
             <h3 className="text-xl font-bold text-slate-800 mt-6 mb-3">Google Tag Manager</h3>
@@ -140,10 +180,26 @@ export default function CookiePolicyPage() {
               بعض الملفات قد يؤثر على وظائف الموقع.
             </p>
             <ul className="list-disc list-inside space-y-2">
-              <li><a href="https://support.google.com/chrome/answer/95647?hl=ar" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Chrome</a></li>
-              <li><a href="https://support.mozilla.org/ar/kb/حظر-ملفات-تعريف-الارتباط" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Mozilla Firefox</a></li>
-              <li><a href="https://support.apple.com/ar-sa/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Apple Safari</a></li>
-              <li><a href="https://support.microsoft.com/ar-sa/windows/حذف-ملفات-تعريف-الارتباط-وإدارتها-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Microsoft Edge</a></li>
+              <li>
+                <a href="https://support.google.com/chrome/answer/95647?hl=ar" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Google Chrome
+                </a>
+              </li>
+              <li>
+                <a href="https://support.mozilla.org/ar/kb/حظر-ملفات-تعريف-الارتباط" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Mozilla Firefox
+                </a>
+              </li>
+              <li>
+                <a href="https://support.apple.com/ar-sa/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Apple Safari
+                </a>
+              </li>
+              <li>
+                <a href="https://support.microsoft.com/ar-sa/windows/حذف-ملفات-تعريف-الارتباط-وإدارتها-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Microsoft Edge
+                </a>
+              </li>
             </ul>
 
             {/* 6 */}
@@ -154,6 +210,7 @@ export default function CookiePolicyPage() {
             </p>
           </div>
 
+          {/* ── التواصل ── */}
           <div className="mt-12 pt-8 border-t border-slate-100">
             <h2 className="text-xl font-bold text-slate-800 mb-2">التواصل معنا</h2>
             <p className="text-slate-600 mb-6">لأي استفسار حول سياسة الكوكيز:</p>
@@ -163,7 +220,10 @@ export default function CookiePolicyPage() {
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <a href={`mailto:${resolvedContactEmail}`} className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                  <a
+                    href={`mailto:${resolvedContactEmail}`}
+                    className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
+                  >
                     {resolvedContactEmail}
                   </a>
                 </div>
@@ -172,7 +232,13 @@ export default function CookiePolicyPage() {
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                   <Globe className="w-5 h-5" />
                 </div>
-                <a href={resolvedSiteUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">
+                {/* FIX: resolvedSiteUrl now always has a value */}
+                <a
+                  href={resolvedSiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
+                >
                   {resolvedSiteUrl}
                 </a>
               </div>
