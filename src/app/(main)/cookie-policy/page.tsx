@@ -9,8 +9,7 @@ import { Mail, Globe, Shield, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 // FIX 2: Date updated to 30 مايو 2026.
-// The old value '18 يناير 2025' while the site is actively maintained in 2026
-// triggered an AdSense audit flag (policy doc date ≠ site activity date).
+ 
 const LAST_UPDATED = '30 مايو 2026';
 
 // SSR-safe fallback — the Zustand store is never hydrated on the server,

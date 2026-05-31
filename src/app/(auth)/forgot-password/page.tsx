@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from '@/lib/motion-lite';
 import { ArrowLeft, CheckCircle, Mail, ShieldQuestion } from 'lucide-react';
@@ -14,6 +14,13 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
 
   const validate = () => {
     if (!email.trim()) {
@@ -30,6 +37,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || cooldown > 0) return;
     setServerError('');
     setSuccessMessage('');
     if (!validate()) return;
@@ -37,10 +45,12 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       const res = await authService.forgotPassword(email.trim());
-      setSuccessMessage(res.message || 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.');
+      setSuccessMessage(res.message || 'إذا كان البريد مسجلاً لدينا، سيتم إرسال رابط إعادة تعيين كلمة المرور.');
+      setCooldown(60);
     } catch (err: unknown) {
       const message = typeof err === 'object' && err && 'message' in err ? String((err as { message?: string }).message) : 'فشل إرسال رابط إعادة التعيين، يرجى المحاولة لاحقاً';
-      setServerError(message);
+      setServerError(message.includes('الحد') || message.includes('Rate') ? 'تم إرسال طلبات كثيرة. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى.' : message);
+      setCooldown(60);
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +75,7 @@ export default function ForgotPasswordPage() {
 
         <Input label="البريد الإلكتروني" type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@email.com" leftIcon={<Mail className="h-5 w-5" />} error={emailError} inputSize="lg" variant="filled" required />
 
-        <Button type="submit" isLoading={isLoading} className="h-12 w-full rounded-2xl bg-blue-700 text-base font-black hover:bg-blue-800" rightIcon={<ArrowLeft className="h-5 w-5" />}>إرسال رابط إعادة التعيين</Button>
+        <Button type="submit" isLoading={isLoading} disabled={isLoading || cooldown > 0} className="h-12 w-full rounded-2xl bg-blue-700 text-base font-black hover:bg-blue-800" rightIcon={<ArrowLeft className="h-5 w-5" />}>{cooldown > 0 ? `إعادة المحاولة بعد ${cooldown} ثانية` : 'إرسال رابط إعادة التعيين'}</Button>
       </form>
 
       <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold leading-7 text-blue-800">

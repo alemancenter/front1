@@ -42,6 +42,7 @@ function VerifyEmailContent() {
   const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [changeEmailLoading, setChangeEmailLoading] = useState(false);
+  const resendCooldownKey = `alemancenter_verify_resend_until:${user?.email || 'anonymous'}`;
 
   // Check if user is already verified
   useEffect(() => {
@@ -50,12 +51,18 @@ function VerifyEmailContent() {
     }
   }, [user, router, hasVerificationParams]);
 
-  // Handle countdown
+  // Restore and handle resend cooldown.
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
+    const savedUntil = Number(window.localStorage.getItem(resendCooldownKey) || '0');
+    if (savedUntil > Date.now()) {
+      setCountdown(Math.ceil((savedUntil - Date.now()) / 1000));
     }
+  }, [resendCooldownKey]);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = window.setTimeout(() => setCountdown((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
   }, [countdown]);
 
   // Verify email from link (with id and time-limited token)
@@ -96,7 +103,13 @@ function VerifyEmailContent() {
     };
   }, [hash, id, hasVerificationParams, router, login]);
 
+  const startResendCooldown = (seconds = 60) => {
+    setCountdown(seconds);
+    window.localStorage.setItem(resendCooldownKey, String(Date.now() + seconds * 1000));
+  };
+
   const handleResend = async () => {
+    if (resendStatus === 'loading' || countdown > 0) return;
     const token = apiClient.getToken();
     if (!token) {
       setResendStatus('error');
@@ -109,18 +122,20 @@ function VerifyEmailContent() {
       const res = await authService.resendVerifyEmail();
       setResendStatus('success');
       setResendMessage(res.message || 'تم إرسال رابط التحقق إلى بريدك الإلكتروني');
-      setCountdown(60);
+      startResendCooldown(60);
     } catch (err: unknown) {
       const msg =
         typeof err === 'object' && err && 'message' in err
           ? String((err as { message?: string }).message)
           : 'فشل إعادة إرسال رابط التحقق';
       setResendStatus('error');
-      setResendMessage(msg);
+      setResendMessage(msg.includes('الحد') || msg.includes('Rate') ? 'تم إرسال طلبات كثيرة. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى.' : msg);
+      startResendCooldown(60);
     }
   };
 
   const handleCheckVerification = async () => {
+    if (loading) return;
     try {
       setLoading(true);
       const updatedUser = await authService.me();
@@ -149,6 +164,7 @@ function VerifyEmailContent() {
   };
 
   const handleChangeEmail = async () => {
+    if (changeEmailLoading || countdown > 0) return;
     if (!newEmail.trim()) {
       setResendStatus('error');
       setResendMessage('يرجى إدخال البريد الجديد');
@@ -174,10 +190,12 @@ function VerifyEmailContent() {
       setNewEmail('');
       setResendStatus(result.verification_email_sent ? 'success' : 'error');
       setResendMessage(result.verification_email_sent ? 'تم تغيير البريد وإرسال رابط تفعيل جديد' : 'تم تغيير البريد لكن تعذر إرسال رابط التفعيل. حاول إعادة الإرسال لاحقاً.');
-      setCountdown(60);
+      startResendCooldown(60);
     } catch (error: any) {
       setResendStatus('error');
-      setResendMessage(error?.message || 'تعذر تغيير البريد الإلكتروني');
+      const msg = error?.message || 'تعذر تغيير البريد الإلكتروني';
+      setResendMessage(String(msg).includes('الحد') || String(msg).includes('Rate') ? 'تم إرسال طلبات كثيرة. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى.' : msg);
+      startResendCooldown(60);
     } finally {
       setChangeEmailLoading(false);
     }
@@ -217,8 +235,9 @@ function VerifyEmailContent() {
             className="w-full"
             leftIcon={<Mail className="w-5 h-5" />}
             onClick={handleResend}
+            disabled={resendStatus === 'loading' || countdown > 0}
           >
-            إعادة إرسال رابط التحقق
+            {countdown > 0 ? `إعادة الإرسال بعد ${countdown} ثانية` : 'إعادة إرسال رابط التحقق'}
           </Button>
 
           <Button type="button" className="w-full" rightIcon={<ArrowLeft className="w-5 h-5" />} onClick={() => router.push('/login')}>
@@ -326,10 +345,11 @@ function VerifyEmailContent() {
                 <Button
                   onClick={handleChangeEmail}
                   isLoading={changeEmailLoading}
+                  disabled={changeEmailLoading || countdown > 0}
                   className="mt-3 w-full"
                   leftIcon={<RefreshCw className="w-4 h-4" />}
                 >
-                  حفظ البريد وإرسال رابط جديد
+                  {countdown > 0 ? `انتظر ${countdown} ثانية` : 'حفظ البريد وإرسال رابط جديد'}
                 </Button>
               </div>
             )}

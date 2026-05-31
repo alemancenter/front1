@@ -58,6 +58,8 @@ export default function RegisterPage() {
   const [emailStatus, setEmailStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [emailPreflight, setEmailPreflight] = useState<{ can_register?: boolean; reason?: string; suggestion?: string } | null>(null);
   const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const emailRequestSeqRef = useRef(0);
+  const emailPreflightCacheRef = useRef<Record<string, { can_register?: boolean; reason?: string; suggestion?: string }>>({});
   const shouldSuggestGoogleSignup = isGoogleEmail(formData.email) && emailStatus === 'available';
 
   useEffect(() => {
@@ -68,17 +70,33 @@ export default function RegisterPage() {
       setEmailPreflight(null);
       return;
     }
+    const cached = emailPreflightCacheRef.current[email];
+    if (cached) {
+      setEmailPreflight(cached);
+      setEmailStatus(cached.can_register ? 'available' : 'taken');
+      setErrors(prev => ({ ...prev, email: cached.can_register ? '' : emailPreflightMessage(cached.reason, cached.suggestion) }));
+      return;
+    }
+
     setEmailStatus('checking');
+    const requestSeq = ++emailRequestSeqRef.current;
     emailDebounceRef.current = setTimeout(async () => {
       try {
         const result = await authService.preflightEmail(email);
+        if (requestSeq !== emailRequestSeqRef.current) return;
+        emailPreflightCacheRef.current[email] = result;
         setEmailPreflight(result);
         setEmailStatus(result.can_register ? 'available' : 'taken');
         setErrors(prev => ({ ...prev, email: result.can_register ? '' : emailPreflightMessage(result.reason, result.suggestion) }));
-      } catch {
+      } catch (error: unknown) {
+        if (requestSeq !== emailRequestSeqRef.current) return;
+        const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message) : '';
         setEmailStatus('idle');
+        if (message.includes('الحد') || message.includes('Rate')) {
+          setErrors(prev => ({ ...prev, email: 'طلبات فحص البريد كثيرة. يرجى الانتظار قليلًا ثم المتابعة.' }));
+        }
       }
-    }, 600);
+    }, 900);
   }, [formData.email]);
 
   const handleGoogleSignup = () => {
@@ -105,7 +123,10 @@ export default function RegisterPage() {
     if (isLoading) return;
     if (!validateForm()) return;
     if (emailStatus === 'taken' || emailPreflight?.can_register === false) return;
-    if (emailStatus === 'checking') return;
+    if (emailStatus === 'checking') {
+      setErrors((prev) => ({ ...prev, email: 'يرجى الانتظار حتى انتهاء فحص البريد.' }));
+      return;
+    }
     setIsLoading(true);
     setServerError('');
     try {
