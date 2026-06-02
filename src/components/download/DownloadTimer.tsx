@@ -56,7 +56,8 @@ export default function DownloadTimer({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isPreparingDownload, setIsPreparingDownload] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
-  const [isFBBrowser, setIsFBBrowser] = useState(false);
+  const [isFBAndroid, setIsFBAndroid] = useState(false);
+  const [isFBIOS, setIsFBIOS] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
   const hasTrackedRef = useRef(false);
@@ -71,10 +72,15 @@ export default function DownloadTimer({
     setDownloads(downloadCount || 0);
   }, [viewsCount, downloadCount]);
 
-  // Detect Facebook / Instagram in-app browser — these browsers block blob downloads
+  // Detect Facebook / Instagram in-app browser per platform
   useEffect(() => {
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-    setIsFBBrowser(/FBAN|FBAV|FB_IAB|FBIOS|FB4A|Instagram/i.test(ua));
+    const isFB = /FBAN|FBAV|FB_IAB|FBIOS|FB4A|Instagram/i.test(ua);
+    if (!isFB) return;
+    // Android FB WebView can download via direct URL (system download manager)
+    // iOS FB WebView cannot download at all — must redirect to Safari
+    setIsFBAndroid(/Android/i.test(ua));
+    setIsFBIOS(/iPhone|iPad|iPod/i.test(ua));
   }, []);
 
   const handleCopyLink = async () => {
@@ -181,6 +187,23 @@ export default function DownloadTimer({
     return fallbackFileName || 'alemancenter-file';
   };
 
+  // iOS FB WebView: redirect current page to Safari using the x-safari URL scheme.
+  // This opens the SAME page in Safari so the user can click download normally.
+  const openCurrentPageInSafari = () => {
+    const pageUrl = window.location.href;
+    // x-safari-https:// tells iOS to hand the URL off to Safari
+    window.location.href = pageUrl.replace(/^https?:\/\//, (m) =>
+      m === 'https://' ? 'x-safari-https://' : 'x-safari-http://'
+    );
+  };
+
+  // Android FB WebView: navigate directly to the signed URL.
+  // Android's system download manager intercepts the Content-Disposition: attachment
+  // header and saves the file — no blob or anchor.click() needed.
+  const downloadViaDirectUrl = (downloadUrl: string) => {
+    window.location.href = downloadUrl;
+  };
+
   const downloadFileInsidePage = async (
     downloadUrl: string,
     fallbackFileName: string
@@ -236,6 +259,12 @@ export default function DownloadTimer({
   const handleDownload = async () => {
     if (isPreparingDownload) return;
 
+    // iOS FB WebView cannot download — hand off to Safari immediately
+    if (isFBIOS) {
+      openCurrentPageInSafari();
+      return;
+    }
+
     setDownloadError(null);
 
     if (!isAuthenticated) {
@@ -257,11 +286,11 @@ export default function DownloadTimer({
 
     try {
       if (customDownloadUrl) {
-        await downloadFileInsidePage(
-          customDownloadUrl,
-          fileName || 'alemancenter-file'
-        );
-
+        if (isFBAndroid) {
+          downloadViaDirectUrl(customDownloadUrl);
+        } else {
+          await downloadFileInsidePage(customDownloadUrl, fileName || 'alemancenter-file');
+        }
         setDownloads((current) => current + 1);
         return;
       }
@@ -300,10 +329,15 @@ export default function DownloadTimer({
         return;
       }
 
-      await downloadFileInsidePage(
-        payload.download_url,
-        fileName || 'alemancenter-file'
-      );
+      if (isFBAndroid) {
+        // Android FB WebView: navigate directly — system download manager handles it
+        downloadViaDirectUrl(payload.download_url);
+      } else {
+        await downloadFileInsidePage(
+          payload.download_url,
+          fileName || 'alemancenter-file'
+        );
+      }
 
       setDownloads((current) => current + 1);
     } catch (error: unknown) {
@@ -355,48 +389,42 @@ export default function DownloadTimer({
           <span>رابط التحميل جاهز!</span>
         </div>
 
-        {/* Facebook / Instagram in-app browser warning */}
-        {isFBBrowser && (
-          <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-right">
+        {/* Android FB WebView: small info banner — download works via system manager */}
+        {isFBAndroid && (
+          <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-right text-sm text-blue-800">
+            <span className="font-bold">تنبيه: </span>
+            سيبدأ التحميل عبر مدير التنزيلات في جهازك تلقائياً.
+          </div>
+        )}
+
+        {/* iOS FB WebView: one-tap "open in Safari" — blob downloads are impossible on iOS WebView */}
+        {isFBIOS && (
+          <div className="mb-6 rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 text-right">
             <div className="mb-3 flex items-center gap-2">
-              <AlertCircle size={22} className="shrink-0 text-amber-600" />
-              <h3 className="font-black text-amber-900">متصفح فيسبوك لا يدعم التحميل</h3>
+              <AlertCircle size={22} className="shrink-0 text-blue-600" />
+              <h3 className="font-black text-blue-900">يجب فتح الصفحة في Safari للتحميل</h3>
             </div>
-            <p className="mb-4 text-sm leading-7 text-amber-800">
-              أنت تفتح الصفحة من داخل تطبيق فيسبوك. هذا المتصفح يمنع تحميل الملفات تلقائياً.
-              <br />
-              لتحميل الملف بنجاح يجب فتح الصفحة في Chrome أو Safari.
+            <p className="mb-4 text-sm leading-7 text-blue-800">
+              متصفح فيسبوك على iPhone لا يسمح بتحميل الملفات مباشرة.
+              اضغط الزر أدناه لفتح الصفحة في Safari وتحميل الملف بنقرة واحدة.
             </p>
-
-            <div className="mb-4 rounded-xl border border-amber-200 bg-white p-3 text-right">
-              <p className="mb-1 text-xs font-black text-amber-700">على Android (Samsung / Huawei / إلخ):</p>
-              <p className="text-sm text-amber-800">
-                اضغط على <strong>⋮</strong> (ثلاث نقاط) في أعلى الشاشة ← ثم اختر <strong>«فتح في Chrome»</strong> أو <strong>«فتح في المتصفح»</strong>
-              </p>
-            </div>
-
-            <div className="mb-4 rounded-xl border border-amber-200 bg-white p-3 text-right">
-              <p className="mb-1 text-xs font-black text-amber-700">على iPhone / iPad:</p>
-              <p className="text-sm text-amber-800">
-                اضغط على <strong>⋯</strong> في أسفل الشاشة ← ثم اختر <strong>«فتح في Safari»</strong>
-              </p>
-            </div>
-
+            <button
+              type="button"
+              onClick={openCurrentPageInSafari}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700 mb-3"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              فتح في Safari وتحميل الملف
+            </button>
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-700"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-white px-5 py-2.5 text-sm font-bold text-blue-700 transition hover:bg-blue-50"
             >
               {linkCopied ? (
-                <>
-                  <CheckCircle size={18} />
-                  تم نسخ الرابط!
-                </>
+                <><CheckCircle size={16} /> تم نسخ الرابط!</>
               ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                  نسخ رابط الصفحة — ثم الصقه في Chrome
-                </>
+                <><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> نسخ الرابط</>
               )}
             </button>
           </div>
@@ -434,19 +462,26 @@ export default function DownloadTimer({
             </Link>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={isPreparingDownload}
-            className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-70 disabled:transform-none"
-          >
-            {isPreparingDownload ? (
-              <Loader2 size={24} className="animate-spin" />
-            ) : (
-              <Download size={24} />
-            )}
-            {isPreparingDownload ? 'جاري تحميل الملف...' : 'تحميل الملف الآن'}
-          </button>
+          // iOS FB WebView: hide main button — Safari button above handles it
+          !isFBIOS && (
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isPreparingDownload}
+              className="inline-flex items-center justify-center gap-3 bg-primary text-white text-lg font-bold px-8 py-4 rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 w-full sm:w-auto transform hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-70 disabled:transform-none"
+            >
+              {isPreparingDownload ? (
+                <Loader2 size={24} className="animate-spin" />
+              ) : (
+                <Download size={24} />
+              )}
+              {isPreparingDownload
+                ? 'جاري تحميل الملف...'
+                : isFBAndroid
+                  ? 'تحميل عبر مدير التنزيلات'
+                  : 'تحميل الملف الآن'}
+            </button>
+          )
         )}
 
         <p className="mt-4 text-sm text-gray-500">

@@ -449,6 +449,11 @@ const nextConfig: NextConfig = {
       // Static assets
       // =========================================================
       {
+        // Next.js build output — hashed filenames, safe to cache indefinitely
+        source: '/_next/static/:path*',
+        headers: longStaticCacheHeaders,
+      },
+      {
         source: '/assets/:path*',
         headers: longStaticCacheHeaders,
       },
