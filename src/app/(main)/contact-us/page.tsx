@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useSettingsStore } from '@/store/useStore';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import StaticPageHeader from '@/components/common/StaticPageHeader';
@@ -444,9 +445,9 @@ export default function ContactUsPage() {
                      policy so users know how their submitted data will be used. */}
                 <p className="text-xs text-slate-500 leading-relaxed">
                   بإرسال هذا النموذج، فإنك توافق على{' '}
-                  <a href="/privacy-policy" className="text-blue-600 hover:underline font-medium">
+                  <Link href="/privacy-policy" className="text-blue-600 hover:underline font-medium">
                     سياسة الخصوصية
-                  </a>
+                  </Link>
                   {' '}الخاصة بنا وعلى معالجة بياناتك للرد على استفسارك.
                 </p>
 
