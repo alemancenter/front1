@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion-lite';
+import { useInView } from '@/hooks/useInView';
 import { MessageSquare, Edit3, Info, AlertTriangle, X, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -27,11 +28,18 @@ export default function ArticleComments({ articleId, countryCode, authorId }: Ar
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch Comments
+  // Only fetch comments when the section scrolls near the viewport.
+  // This eliminates the automatic API call on every article page load —
+  // users who don't scroll to comments never trigger the request.
+  const { ref: sectionRef, inView } = useInView();
+
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!inView || !articleId) return;
     async function fetchComments() {
-      if (!articleId) return;
       try {
         const res = await commentsService.getAll(countryCode, {
           commentable_id: articleId,
@@ -44,7 +52,7 @@ export default function ArticleComments({ articleId, countryCode, authorId }: Ar
       }
     }
     fetchComments();
-  }, [articleId, countryCode]);
+  }, [inView, articleId, countryCode]);
 
   const handleCommentSubmit = async () => {
     if (!commentBody.trim() || !isAuthenticated) return;
@@ -69,11 +77,11 @@ export default function ArticleComments({ articleId, countryCode, authorId }: Ar
   };
 
   return (
+    <div ref={sectionRef} className="mt-12">
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.7 }}
-      className="mt-12"
     >
       {/* Error Alert Modal */}
       <AnimatePresence>
@@ -232,6 +240,7 @@ export default function ArticleComments({ articleId, countryCode, authorId }: Ar
         )}
       </div>
     </motion.div>
+    </div>
   );
 }
 

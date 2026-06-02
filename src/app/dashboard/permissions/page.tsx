@@ -98,9 +98,11 @@ export default function PermissionsPage() {
   };
 
   useEffect(() => {
-    loadPermissions();
+    if (isAuthorized) {
+      loadPermissions();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthorized]);
 
   if (isAuthorized === null) {
     return (

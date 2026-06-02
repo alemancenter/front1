@@ -387,10 +387,13 @@ export default function SettingsPage() {
     });
   };
 
-  // Load settings on mount
+  // Load settings only after permission is confirmed — prevents 403 from users
+  // without 'manage settings' permission who navigate to this page.
   useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
+    if (isAuthorized) {
+      loadSettings();
+    }
+  }, [isAuthorized, loadSettings]);
 
   // Permission checks after all hooks
   if (isAuthorized === null) {

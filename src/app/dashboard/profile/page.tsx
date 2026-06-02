@@ -15,7 +15,7 @@ import Card, { CardContent, CardHeader } from '@/components/ui/Card';
 import { cn, getStorageUrl } from '@/lib/utils';
 
 export default function ProfilePage() {
-  const { login } = useAuthStore();
+  const { login, isAuthenticated, _hasHydrated } = useAuthStore();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -225,10 +225,13 @@ export default function ProfilePage() {
     return lastActivity > fiveMinutesAgo;
   };
 
-  // Load user data on mount
+  // Wait for hydration + confirmed auth before fetching.
+  // Without this guard, expired-session users fire a request before logout() clears state.
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    if (_hasHydrated && isAuthenticated) {
+      fetchUserData();
+    }
+  }, [_hasHydrated, isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (

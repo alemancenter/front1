@@ -32,6 +32,7 @@ import { formatFileSize, getStorageUrl } from '@/lib/utils';
 import { postsService } from '@/lib/api/services';
 import { commentsService } from '@/lib/api/services/comments';
 import { useAuthStore } from '@/store/useStore';
+import { useInView } from '@/hooks/useInView';
 import Image from '@/components/common/AppImage';
 import Badge from '@/components/ui/Badge';
 import PostSeoContentBlock from './PostSeoContentBlock';
@@ -132,6 +133,8 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
   const [freshPostFiles, setFreshPostFiles] = useState<any[] | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const { ref: commentsRef, inView: commentsInView } = useInView();
 
   const featuredImagePath = getPostImagePath(post);
   const featuredImageSrc = getStorageUrl(featuredImagePath);
@@ -263,17 +266,19 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
     return () => { cancelled = true; };
   }, [post.id, countryCode]);
 
+  useEffect(() => { setIsMounted(true); }, []);
+
+  // Lazy-load comments: only fetch when the comments section scrolls near the viewport.
   useEffect(() => {
-    setIsMounted(true);
+    if (!commentsInView || !post.id) return;
     async function fetchComments() {
-      if (!post.id) return;
       try {
         const res = await commentsService.getAll(countryCode, { commentable_id: post.id, commentable_type: 'App\\Models\\Post', per_page: 50 });
         setComments(res.data || []);
       } catch {}
     }
     fetchComments();
-  }, [post.id, countryCode]);
+  }, [commentsInView, post.id, countryCode]);
 
   const handleCommentSubmit = async () => {
     if (!commentBody.trim() || !isAuthenticated) return;
@@ -534,7 +539,7 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
               </section>
             )}
 
-            <section id="comments" className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+            <section id="comments" ref={commentsRef} className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
               <div className="mb-6 flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <h2 className="flex items-center gap-2 text-2xl font-black text-slate-950"><MessageSquare className="h-6 w-6 text-blue-700" />التعليقات</h2>
                 <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-black text-blue-700">{comments.length} تعليق</div>

@@ -33,7 +33,7 @@ function VerifyEmailContent() {
   // If has id and hash, show verification result
   const hasVerificationParams = id && hash;
 
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'pending' | 'loading' | 'success' | 'error'>('pending');
   const [message, setMessage] = useState<string>('');
   const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [resendMessage, setResendMessage] = useState<string>('');
@@ -65,43 +65,34 @@ function VerifyEmailContent() {
     return () => window.clearTimeout(timer);
   }, [countdown]);
 
-  // Verify email from link (with id and time-limited token)
-  useEffect(() => {
-    let isMounted = true;
-    const run = async () => {
-      if (!hasVerificationParams) return;
-      setStatus('loading');
-      setMessage('');
+  // Verify email — called only when the user explicitly clicks the confirm button.
+  // NOT triggered automatically on mount so that email security scanners
+  // (Outlook Safe Links, Gmail pre-fetch) cannot consume the one-time token
+  // before the real user has a chance to act.
+  const handleConfirmVerification = async () => {
+    if (status === 'loading' || !hasVerificationParams) return;
+    setStatus('loading');
+    setMessage('');
+    try {
+      const res = await authService.verifyEmail(id, hash);
       try {
-        const res = await authService.verifyEmail(id, hash);
-        if (!isMounted) return;
-
-        // Fetch updated user data and update store
         const updatedUser = await authService.me();
         login(updatedUser);
-
-        setStatus('success');
-        setMessage(res.message || 'تم تأكيد البريد الإلكتروني بنجاح.');
-
-        // Redirect to homepage after 2 seconds
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
-      } catch (err: unknown) {
-        const msg =
-          typeof err === 'object' && err && 'message' in err
-            ? String((err as { message?: string }).message)
-            : 'فشل تأكيد البريد الإلكتروني';
-        if (!isMounted) return;
-        setStatus('error');
-        setMessage(msg);
+      } catch {
+        // non-fatal — user will be refreshed on next navigation
       }
-    };
-    run();
-    return () => {
-      isMounted = false;
-    };
-  }, [hash, id, hasVerificationParams, router, login]);
+      setStatus('success');
+      setMessage(res.message || 'تم تأكيد البريد الإلكتروني بنجاح.');
+      setTimeout(() => { router.push('/'); }, 2000);
+    } catch (err: unknown) {
+      const msg =
+        typeof err === 'object' && err && 'message' in err
+          ? String((err as { message?: string }).message)
+          : 'فشل تأكيد البريد الإلكتروني';
+      setStatus('error');
+      setMessage(msg);
+    }
+  };
 
   const startResendCooldown = (seconds = 60) => {
     setCountdown(seconds);
@@ -207,8 +198,18 @@ function VerifyEmailContent() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">تأكيد البريد الإلكتروني</h1>
-          <p className="text-muted-foreground">نقوم بتأكيد بريدك الإلكتروني لتفعيل حسابك</p>
+          <p className="text-muted-foreground">
+            {status === 'pending'
+              ? 'اضغط الزر أدناه لتفعيل حسابك'
+              : 'نقوم بتأكيد بريدك الإلكتروني لتفعيل حسابك'}
+          </p>
         </div>
+
+        {status === 'pending' && (
+          <div className="p-4 rounded-lg bg-muted/40 text-sm text-muted-foreground mb-4">
+            تم فتح رابط التحقق بنجاح. اضغط &quot;تأكيد البريد الآن&quot; لإتمام التفعيل.
+          </div>
+        )}
 
         {status === 'loading' && (
           <div className="p-3 rounded-lg bg-muted/40 text-sm text-muted-foreground">جاري تأكيد البريد الإلكتروني...</div>
@@ -222,25 +223,43 @@ function VerifyEmailContent() {
         )}
 
         {status === 'error' && (
-          <div className="p-3 rounded-lg bg-error/10 text-error text-sm flex items-start gap-2">
-            <AlertTriangle className="w-5 h-5 mt-0.5" />
-            <div className="leading-6">{message}</div>
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg bg-error/10 text-error text-sm flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 mt-0.5" />
+              <div className="leading-6">{message}</div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              إذا كان الرابط منتهياً، يمكنك طلب رابط تحقق جديد.
+            </p>
           </div>
         )}
 
         <div className="mt-6 space-y-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            leftIcon={<Mail className="w-5 h-5" />}
-            onClick={handleResend}
-            disabled={resendStatus === 'loading' || countdown > 0}
-          >
-            {countdown > 0 ? `إعادة الإرسال بعد ${countdown} ثانية` : 'إعادة إرسال رابط التحقق'}
-          </Button>
+          {status === 'pending' && (
+            <Button
+              type="button"
+              className="w-full"
+              leftIcon={<CheckCircle className="w-5 h-5" />}
+              onClick={handleConfirmVerification}
+            >
+              تأكيد البريد الآن
+            </Button>
+          )}
 
-          <Button type="button" className="w-full" rightIcon={<ArrowLeft className="w-5 h-5" />} onClick={() => router.push('/login')}>
+          {status === 'error' && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              leftIcon={<Mail className="w-5 h-5" />}
+              onClick={handleResend}
+              disabled={resendStatus === 'loading' || countdown > 0}
+            >
+              {countdown > 0 ? `إعادة الإرسال بعد ${countdown} ثانية` : 'إرسال رابط تحقق جديد'}
+            </Button>
+          )}
+
+          <Button type="button" variant="outline" className="w-full" rightIcon={<ArrowLeft className="w-5 h-5" />} onClick={() => router.push('/login')}>
             الانتقال لتسجيل الدخول
           </Button>
         </div>
