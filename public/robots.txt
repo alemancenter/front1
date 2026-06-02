@@ -40,6 +40,7 @@ Disallow: /*/download/
 Disallow: /dashboard
 Disallow: /dashboard/
 Disallow: /api/
+Disallow: /backend-api/
 Disallow: /_next/
 Disallow: /login
 Disallow: /register
@@ -68,6 +69,7 @@ Allow: /eg/
 Allow: /ps/
 Disallow: /dashboard
 Disallow: /api/
+Disallow: /backend-api/
 Allow: /_next/static/
 Allow: /storage/
 Disallow: /_next/
@@ -90,6 +92,7 @@ Allow: /_next/static/
 Allow: /storage/
 Disallow: /dashboard
 Disallow: /api/
+Disallow: /backend-api/
 Disallow: /_next/
 Disallow: /login
 Disallow: /register

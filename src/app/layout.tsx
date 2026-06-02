@@ -162,7 +162,7 @@ export default async function RootLayout({
         */}
         {marketingEnabled && (
           <Script id="google-consent-default" strategy="beforeInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':500});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`}
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':2000});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`}
           </Script>
         )}
         {/* AdSense ownership verification */}
