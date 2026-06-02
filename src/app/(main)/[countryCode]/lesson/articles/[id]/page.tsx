@@ -334,12 +334,15 @@ export default async function ArticlePage({ params }: Props) {
                   sectionName={sectionName}
                 />
 
-                {/* SEO Content Block (Increases text density) */}
+                {/* Factual file summary — populated from real article data */}
                 <SeoContentBlock
                   title={article.title}
-                  subject={article.subject?.name}
+                  subject={article.subject?.subject_name || article.subject?.name}
                   category={categoryName}
                   sectionName={sectionName}
+                  gradeName={article.schoolClass?.grade_name}
+                  semesterName={article.semester?.semester_name}
+                  files={article.files}
                 />
 
                 {showArticleAds && articleAdLimit >= 2 && (

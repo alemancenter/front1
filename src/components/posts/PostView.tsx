@@ -433,7 +433,11 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
 
                 <div className="rich-content max-w-none text-right" dangerouslySetInnerHTML={{ __html: contentWithIds }} />
 
-                <PostSeoContentBlock title={post.title} category={post.category?.name} />
+                <PostSeoContentBlock
+                  title={post.title}
+                  category={post.category?.name}
+                  keywords={post.keywords}
+                />
 
                 {postAttachments.length > 0 && (
                   <section id="attachments" className="mt-10 rounded-[2rem] border border-slate-100 bg-slate-50/80 p-5 md:p-6">

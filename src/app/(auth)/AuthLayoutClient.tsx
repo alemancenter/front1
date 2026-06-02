@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from '@/lib/motion-lite';
 import { BookOpen, CheckCircle2, FileText, GraduationCap, Layers3, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
 
 export default function AuthLayoutClient({
   children,
@@ -118,6 +119,7 @@ export default function AuthLayoutClient({
           </div>
         </aside>
       </div>
+      <ChatbotWidget />
     </main>
   );
 }

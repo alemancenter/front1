@@ -99,6 +99,7 @@ class ApiClient {
       '/posts',
       '/articles',
       '/home',
+      '/chatbot',
     ];
 
     return bypassPrefixes.some((path) => endpoint === path || endpoint.startsWith(`${path}/`) || endpoint.startsWith(`${path}?`));

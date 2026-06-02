@@ -56,6 +56,8 @@ export default function DownloadTimer({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isPreparingDownload, setIsPreparingDownload] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [isFBBrowser, setIsFBBrowser] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const hasTrackedRef = useRef(false);
   const { isAuthenticated, user } = useAuthStore();
@@ -68,6 +70,32 @@ export default function DownloadTimer({
     setViews(viewsCount || 0);
     setDownloads(downloadCount || 0);
   }, [viewsCount, downloadCount]);
+
+  // Detect Facebook / Instagram in-app browser — these browsers block blob downloads
+  useEffect(() => {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    setIsFBBrowser(/FBAN|FBAV|FB_IAB|FBIOS|FB4A|Instagram/i.test(ua));
+  }, []);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch {
+      // Fallback for older devices
+      const ta = document.createElement('textarea');
+      ta.value = window.location.href;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    }
+  };
 
   useEffect(() => {
     if (hasTrackedRef.current) return;
@@ -326,6 +354,53 @@ export default function DownloadTimer({
           <CheckCircle size={20} />
           <span>رابط التحميل جاهز!</span>
         </div>
+
+        {/* Facebook / Instagram in-app browser warning */}
+        {isFBBrowser && (
+          <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-right">
+            <div className="mb-3 flex items-center gap-2">
+              <AlertCircle size={22} className="shrink-0 text-amber-600" />
+              <h3 className="font-black text-amber-900">متصفح فيسبوك لا يدعم التحميل</h3>
+            </div>
+            <p className="mb-4 text-sm leading-7 text-amber-800">
+              أنت تفتح الصفحة من داخل تطبيق فيسبوك. هذا المتصفح يمنع تحميل الملفات تلقائياً.
+              <br />
+              لتحميل الملف بنجاح يجب فتح الصفحة في Chrome أو Safari.
+            </p>
+
+            <div className="mb-4 rounded-xl border border-amber-200 bg-white p-3 text-right">
+              <p className="mb-1 text-xs font-black text-amber-700">على Android (Samsung / Huawei / إلخ):</p>
+              <p className="text-sm text-amber-800">
+                اضغط على <strong>⋮</strong> (ثلاث نقاط) في أعلى الشاشة ← ثم اختر <strong>«فتح في Chrome»</strong> أو <strong>«فتح في المتصفح»</strong>
+              </p>
+            </div>
+
+            <div className="mb-4 rounded-xl border border-amber-200 bg-white p-3 text-right">
+              <p className="mb-1 text-xs font-black text-amber-700">على iPhone / iPad:</p>
+              <p className="text-sm text-amber-800">
+                اضغط على <strong>⋯</strong> في أسفل الشاشة ← ثم اختر <strong>«فتح في Safari»</strong>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-700"
+            >
+              {linkCopied ? (
+                <>
+                  <CheckCircle size={18} />
+                  تم نسخ الرابط!
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  نسخ رابط الصفحة — ثم الصقه في Chrome
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
         {downloadError && (
           <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-right text-sm leading-7 text-rose-800">

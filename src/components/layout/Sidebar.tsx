@@ -25,7 +25,8 @@ import {
   Map,
   FolderOpen,
   MessageSquare,
-  Database
+  Database,
+  Bot
 } from 'lucide-react';
 
 interface MenuItem {
@@ -217,6 +218,12 @@ export default function Sidebar({ initialSettings }: SidebarProps) {
         icon: Mail,
         href: '/dashboard/messages',
         permission: 'manage messages',
+      },
+      {
+        title: 'مساعد المنصة',
+        icon: Bot,
+        href: '/dashboard/chatbot',
+        permission: 'manage settings',
       },
       {
         title: 'الإشعارات',

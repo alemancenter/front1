@@ -1,5 +1,6 @@
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
 import { getFrontSettings } from '@/lib/front-settings';
 
 export default async function MainLayout({
@@ -14,6 +15,7 @@ export default async function MainLayout({
       <Navbar initialSettings={initialSettings} />
       <main className="min-h-screen">{children}</main>
       <Footer initialSettings={initialSettings} />
+      <ChatbotWidget />
     </>
   );
 }

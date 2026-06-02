@@ -12,6 +12,7 @@ export { default as securityService } from './security';
 export { notificationService as notificationsService } from './notifications';
 export { default as messagesService } from './messages';
 export { contactMessagesService } from './contact-messages';
+export { chatbotService } from './chatbot';
 export { default as rolesService } from './roles';
 export { default as calendarService } from './calendar';
 export { default as filesService } from './files';

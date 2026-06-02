@@ -1,11 +1,11 @@
 // API Configuration
 export const API_CONFIG = {
   // Public URL for client-side requests (browser)
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8082/api',
 
   // Internal URL for SSR requests (server-to-server, faster)
   // Uses localhost connection when on same server, bypasses DNS/SSL overhead
-  INTERNAL_URL: process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+  INTERNAL_URL: process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8082/api',
 
   TIMEOUT: 30000,
 };
@@ -236,6 +236,18 @@ export const API_ENDPOINTS = {
     MARK_READ: (id: number | string) => `/dashboard/messages/${id}/read`,
     TOGGLE_IMPORTANT: (id: number | string) => `/dashboard/messages/${id}/important`,
     DELETE: (id: number | string) => `/dashboard/messages/${id}`,
+  },
+
+
+
+  // ========== CHATBOT ==========
+  CHATBOT: {
+    SUGGESTIONS: '/chatbot/suggestions',
+    MESSAGE: '/chatbot/message',
+    FEEDBACK: '/chatbot/feedback',
+    DASHBOARD_SESSIONS: '/dashboard/chatbot/sessions',
+    DASHBOARD_KNOWLEDGE: '/dashboard/chatbot/knowledge',
+    DASHBOARD_KNOWLEDGE_ITEM: (id: number | string) => `/dashboard/chatbot/knowledge/${id}`,
   },
 
   // ========== CONTACT MESSAGES ==========
