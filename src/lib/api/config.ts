@@ -246,6 +246,7 @@ export const API_ENDPOINTS = {
     MESSAGE: '/chatbot/message',
     FEEDBACK: '/chatbot/feedback',
     DASHBOARD_SESSIONS: '/dashboard/chatbot/sessions',
+    DASHBOARD_SESSION: (id: number | string) => `/dashboard/chatbot/sessions/${id}`,
     DASHBOARD_KNOWLEDGE: '/dashboard/chatbot/knowledge',
     DASHBOARD_KNOWLEDGE_ITEM: (id: number | string) => `/dashboard/chatbot/knowledge/${id}`,
   },

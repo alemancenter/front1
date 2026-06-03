@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './globals.css';
 import ToastProvider from '@/components/ui/ToastProvider';
 import ThemeInitializer from '@/components/ThemeInitializer';
@@ -153,17 +152,18 @@ export default async function RootLayout({
         {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
         {apiOrigin && <link rel="dns-prefetch" href={apiOrigin} />}
         {/*
-          Google Consent Mode v2 — MUST be the very first script.
-          Initialises dataLayer + gtag and sets all consent signals to "denied"
-          before any Google tag (Analytics, AdSense) has a chance to load.
-          Our custom banner calls gtag('consent','update',{...}) once the user
-          makes a choice. wait_for_update:500 gives the banner 500 ms to fire
-          before Google tags act on the default denied state.
+          Google Consent Mode v2 — inline <script> guarantees this is the
+          very first script in the SSR HTML, before any Google tag can load.
+          All signals default to "denied". Our banner fires gtag('consent','update',{...})
+          after the user makes a choice. wait_for_update:3000 gives slow connections
+          enough time for hydration + banner render before tags act on defaults.
         */}
         {marketingEnabled && (
-          <Script id="google-consent-default" strategy="beforeInteractive">
-            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':2000});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`}
-          </Script>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'ad_storage':'denied','analytics_storage':'denied','ad_user_data':'denied','ad_personalization':'denied','wait_for_update':3000});gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);`,
+            }}
+          />
         )}
         {/* AdSense ownership verification */}
         {normalizedAdsenseClient && (
@@ -177,17 +177,6 @@ export default async function RootLayout({
         )}
       </head>
       <body className="antialiased min-h-screen">
-        {/* Google Tag Manager (noscript) */}
-        {marketingEnabled && gtmId && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
-        )}
         <FrontSettingsProvider settings={settings}>
           <StoreHydration />
           <DeferredMarketingTags

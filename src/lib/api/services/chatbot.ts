@@ -58,7 +58,9 @@ export interface ChatbotSessionMessage {
   role: 'user' | 'assistant' | string;
   message: string;
   intent?: string;
+  confidence?: number;
   source_type?: string;
+  metadata?: string;
   created_at: string;
 }
 
@@ -99,6 +101,11 @@ export const chatbotService = {
   async sessions(limit = 50): Promise<ChatbotSession[]> {
     const response = await apiClient.get<{ data: ChatbotSession[] }>(API_ENDPOINTS.CHATBOT.DASHBOARD_SESSIONS, { limit }, { cache: 'no-store' });
     return payload<ChatbotSession[]>(response) || [];
+  },
+
+  async session(id: number | string): Promise<ChatbotSession> {
+    const response = await apiClient.get<{ data: ChatbotSession }>(API_ENDPOINTS.CHATBOT.DASHBOARD_SESSION(id), undefined, { cache: 'no-store' });
+    return payload<ChatbotSession>(response);
   },
 
   async knowledge(country = '', limit = 100): Promise<ChatbotKnowledgeItem[]> {
