@@ -3,40 +3,25 @@
 # Educational Platform for Jordan & Arab Countries
 # ======================================
 
-
-# Allow all search engines
+# ──────────────────────────────────────
+# Default rules (apply to every crawler
+# that doesn't have its own block below)
+# ──────────────────────────────────────
 User-agent: *
 
-# Allow crawling main content
-Allow: /
-Allow: /jo/
-Allow: /sa/
-Allow: /eg/
-Allow: /ps/
-Allow: /about-us
-Allow: /contact
-Allow: /contact-us
-Allow: /privacy-policy
-Allow: /terms-of-service
-Allow: /cookie-policy
-Allow: /disclaimer
-Allow: /copyright
-Allow: /editorial-policy
-Allow: /services
-Allow: /members
-Allow: /search
-Allow: /storage/
+# Static assets the rendering engine needs
 Allow: /_next/static/
+Allow: /storage/
 
-# Allow lessons and articles
-Allow: /*/lesson/
-Allow: /*/articles/
-Allow: /*/posts/
-# Download pages are utility pages, not landing pages for search or AdSense review
-Disallow: /download/
-Disallow: /*/download/
-
-# Disallow admin/dashboard areas
+# Block admin, APIs and user-state pages.
+#
+#   /download/  is intentionally NOT blocked here.
+#   The /download/{id} pages already emit `<meta name="robots" content="noindex,follow">`
+#   from generateMetadata(). Blocking them in robots.txt would prevent Googlebot
+#   from ever reading that noindex tag, leaving the URLs stuck in
+#   "Discovered – currently not indexed" forever (Search Console flagged
+#   ~10k of these). Letting Googlebot crawl them once is the right behavior;
+#   internal links use rel="nofollow" so the crawl budget stays small.
 Disallow: /dashboard
 Disallow: /dashboard/
 Disallow: /api/
@@ -44,63 +29,33 @@ Disallow: /backend-api/
 Disallow: /_next/
 Disallow: /login
 Disallow: /register
-Disallow: /download/
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify-email
 Disallow: /auth/
 
-# Disallow internal/duplicate parameters only
+# Block faceted / duplicate-content query strings only
 Disallow: /*?*country=
 Disallow: /*?*sort=
 Disallow: /*?*filter=
 
-# Block specific files
+# Block raw JSON dumps
 Disallow: /*.json$
 
-# ======================================
-# Google Bot - Specific Rules
-# ======================================
-User-agent: Googlebot
-Allow: /
-Allow: /jo/
-Allow: /sa/
-Allow: /eg/
-Allow: /ps/
-Disallow: /dashboard
-Disallow: /api/
-Disallow: /backend-api/
-Allow: /_next/static/
-Allow: /storage/
-Disallow: /_next/
-Disallow: /login
-Disallow: /register
-Disallow: /download/
-
-# Allow Google to index images
+# ──────────────────────────────────────
+# Googlebot-Image: only static + storage
+# ──────────────────────────────────────
 User-agent: Googlebot-Image
 Allow: /
 Allow: /storage/
 Disallow: /dashboard
-
-# ======================================
-# Bing Bot
-# ======================================
-User-agent: Bingbot
-Allow: /
-Allow: /_next/static/
-Allow: /storage/
-Disallow: /dashboard
 Disallow: /api/
-Disallow: /backend-api/
-Disallow: /_next/
-Disallow: /login
-Disallow: /register
-Disallow: /download/
 
-# ======================================
-# Yandex Bot
-# ======================================
+# ──────────────────────────────────────
+# Yandex / Baidu — same rules as default,
+# but listed explicitly to silence
+# crawler-specific defaults of their own.
+# ──────────────────────────────────────
 User-agent: Yandex
 Allow: /
 Allow: /_next/static/
@@ -109,17 +64,14 @@ Disallow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 
-# ======================================
-# Baidu Bot
-# ======================================
 User-agent: Baiduspider
 Allow: /
 Disallow: /dashboard
 Disallow: /api/
 
-# ======================================
-# Block Bad Bots
-# ======================================
+# ──────────────────────────────────────
+# Aggressive SEO scrapers — full block
+# ──────────────────────────────────────
 User-agent: AhrefsBot
 Disallow: /
 
@@ -153,9 +105,9 @@ Disallow: /
 User-agent: com.google.android.apps.searchlite
 Disallow: /
 
-# ======================================
-# Sitemap Location
-# ======================================
+# ──────────────────────────────────────
+# Sitemaps
+# ──────────────────────────────────────
 # Static pages sitemap (Next.js generated — includes all static routes)
 Sitemap: https://alemancenter.com/sitemap.xml
 # Dynamic content sitemaps (backend generated — articles and posts per country)
@@ -167,8 +119,5 @@ Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_articles_jo.xml
 Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_post_jo.xml
 Sitemap: https://alemancenter.com/storage/sitemaps/sitemap_static_jo.xml
 
-
-# ======================================
-# Host Declaration
-# ======================================
+# Canonical host
 Host: https://alemancenter.com

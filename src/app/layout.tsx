@@ -142,10 +142,10 @@ export default async function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
 
-        {/* Preload the two weights that actually drive LCP above the fold:
-            Bold (used by the article H1 / font-black) and SemiBold (used by
-            badges, buttons, navbar). Regular is left to swap-in lazily — the
-            system fallback covers body text without affecting LCP timing. */}
+        {/* Preload the three weights used above the fold across the public
+            site. Bold = article H1 (font-black), SemiBold = navbar/badges,
+            Regular = post body text. Lighthouse flagged all three on the
+            critical path on different routes (articles + posts). */}
         <link
           rel="preload"
           href="/fonts/cairo/Cairo-Bold.woff2"
@@ -157,6 +157,14 @@ export default async function RootLayout({
         <link
           rel="preload"
           href="/fonts/cairo/Cairo-SemiBold.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          href="/fonts/cairo/Cairo-Regular.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"

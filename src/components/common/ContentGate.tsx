@@ -106,6 +106,7 @@ export default function ContentGate({ children }: ContentGateProps) {
             <div className="flex flex-col gap-3">
               <Link
                 href={loginHref}
+                rel="nofollow"
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors"
               >
                 <LogIn className="w-4 h-4" />
@@ -113,6 +114,7 @@ export default function ContentGate({ children }: ContentGateProps) {
               </Link>
               <Link
                 href={`/register?return=${encodeURIComponent(pathname)}`}
+                rel="nofollow"
                 className="w-full inline-flex items-center justify-center px-6 py-3 border border-border text-foreground rounded-xl font-medium text-sm hover:bg-secondary/50 transition-colors"
               >
                 إنشاء حساب جديد

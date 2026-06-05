@@ -190,6 +190,7 @@ export default function ArticleComments({ articleId, countryCode, authorId }: Ar
               </div>
               <Link
                 href={`/login?return=${encodeURIComponent(pathname || '')}`}
+                rel="nofollow"
                 className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
               >
                 تسجيل الدخول

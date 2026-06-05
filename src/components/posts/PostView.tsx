@@ -480,6 +480,7 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
                                 <Link
                                   href={`/download/${file.id}`}
                                   aria-label={`تحميل ${file.file_name || 'الملف'}`}
+                                  rel="nofollow"
                                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
                                 >
                                   <Download className="h-4 w-4" aria-hidden="true" />
@@ -489,8 +490,8 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
                                 <div className="flex flex-col gap-3 sm:items-end">
                                   <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600"><Lock className="h-4 w-4" />يتطلب تسجيل دخول مجاني</div>
                                   <div className="flex gap-2">
-                                    <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-700 px-4 text-xs font-black text-white transition hover:bg-blue-800"><LogIn className="h-3.5 w-3.5" />دخول</Link>
-                                    <Link href={`/register?return=${encodeURIComponent(pathname)}`} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-white px-4 text-xs font-black text-blue-700 transition hover:bg-blue-50"><UserPlus className="h-3.5 w-3.5" />حساب جديد</Link>
+                                    <Link href={`/login?return=${encodeURIComponent(pathname)}`} rel="nofollow" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-700 px-4 text-xs font-black text-white transition hover:bg-blue-800"><LogIn className="h-3.5 w-3.5" />دخول</Link>
+                                    <Link href={`/register?return=${encodeURIComponent(pathname)}`} rel="nofollow" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-white px-4 text-xs font-black text-blue-700 transition hover:bg-blue-50"><UserPlus className="h-3.5 w-3.5" />حساب جديد</Link>
                                   </div>
                                 </div>
                               )}

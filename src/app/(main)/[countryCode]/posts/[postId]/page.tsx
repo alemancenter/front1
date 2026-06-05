@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import { API_ENDPOINTS, COUNTRIES } from '@/lib/api/config';
 import { apiClient } from '@/lib/api/client';
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { cache } from 'react';
 import PostView from '@/components/posts/PostView';
 import { safeJsonLd } from '@/lib/utils';
 import { getFrontSettings } from '@/lib/front-settings';
 import { evaluateAdsenseReadiness } from '@/lib/adsense-readiness';
+
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
 
 // Use ISR with revalidation for better performance
 export const revalidate = 120;
@@ -213,11 +214,6 @@ export default async function PostPage({
     googleAdsMobile2: settings.google_ads_mobile_news_2 || '',
   };
 
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost:3000';
-  const protocol = headersList.get('x-forwarded-proto') || 'http';
-  const currentUrl = `${protocol}://${host}/${countryCode}/posts/${postId}`;
-
   // Build base URL and site name at runtime for JSON-LD
   const siteNameRuntime = (settings.site_name || (settings as any).siteName || '').toString().trim();
   const resolvedSiteName = siteNameRuntime || 'منصة التعليم';
@@ -252,7 +248,11 @@ export default async function PostPage({
       .join(', ');
   }
 
-  const mainEntityId = baseUrl ? `${baseUrl}/${countryCode}/posts/${postId}` : currentUrl;
+  // Path-only fallback so the page stays statically generable (calling
+  // headers() forced dynamic rendering, defeating ISR + Nginx s-maxage caching).
+  const pagePath = `/${countryCode}/posts/${postId}`;
+  const currentUrl = baseUrl ? `${baseUrl}${pagePath}` : APP_URL ? `${APP_URL}${pagePath}` : pagePath;
+  const mainEntityId = currentUrl;
 
   const jsonLd = {
     '@context': 'https://schema.org',

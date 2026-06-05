@@ -159,6 +159,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
                     <Link
                       href={`/download/${file.id}`}
                       aria-label={`تحميل ${file.file_name || 'الملف'}`}
+                      rel="nofollow"
                       className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 font-bold text-white shadow-lg shadow-blue-700/20 transition-colors hover:bg-blue-800"
                     >
                       <Download size={18} aria-hidden="true" />
@@ -181,6 +182,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
                     <div className="flex w-full gap-2 sm:w-auto">
                       <Link
                         href={`/login?return=${encodeURIComponent(pathname)}`}
+                        rel="nofollow"
                         className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-xs font-black text-white transition-all hover:bg-blue-800 sm:flex-none"
                       >
                         <LogIn size={14} />
@@ -188,6 +190,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
                       </Link>
                       <Link
                         href={`/register?return=${encodeURIComponent(pathname)}`}
+                        rel="nofollow"
                         className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 px-4 py-2 text-xs font-black text-blue-700 transition-all hover:bg-blue-50 sm:flex-none"
                       >
                         <UserPlus size={14} />
