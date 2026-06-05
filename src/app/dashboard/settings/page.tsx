@@ -25,6 +25,7 @@ import {
   Server,
   Copy,
   Zap,
+  Download,
 } from 'lucide-react';
 import Image from '@/components/common/AppImage';
 import Card, { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
@@ -49,6 +50,7 @@ const tabs = [
   { id: 'email', label: 'البريد الإلكتروني', icon: Mail },
   { id: 'seo', label: 'SEO', icon: FileText },
   { id: 'ads', label: 'الإعلانات', icon: Code },
+  { id: 'downloads', label: 'التحميل', icon: Download },
   { id: 'security', label: 'الأمان', icon: Globe },
   { id: 'appearance', label: 'المظهر', icon: Palette },
 ];
@@ -132,6 +134,9 @@ interface SettingsData {
   google_ads_mobile_download_2?: string;
   google_ads_mobile_home?: string;
   google_ads_mobile_home_2?: string;
+
+  // Downloads
+  require_login_for_download?: string;
 
   // Security
   recaptcha_site_key?: string;
@@ -1225,6 +1230,82 @@ export default function SettingsPage() {
                         inputMode="numeric"
                       />
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Downloads Settings */}
+          {activeTab === 'downloads' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>إعدادات التحميل</CardTitle>
+                  <CardDescription>
+                    تحكّم في طريقة وصول الزوّار إلى الملفات القابلة للتحميل
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex-1">
+                      <h4 className="font-medium flex items-center gap-2">
+                        <Download className="w-4 h-4 text-primary" />
+                        طلب تسجيل الدخول قبل التحميل
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        عند التفعيل يجب على الزائر تسجيل الدخول وتأكيد البريد الإلكتروني قبل تحميل أي ملف.
+                        عند إيقافه يصبح التحميل متاحاً للجميع مباشرةً دون الحاجة إلى حساب.
+                      </p>
+                      <p className="text-xs mt-2 font-medium" dir="rtl">
+                        الحالة الحالية:{' '}
+                        <span
+                          className={cn(
+                            settings.require_login_for_download !== 'false'
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          )}
+                        >
+                          {settings.require_login_for_download !== 'false'
+                            ? 'تسجيل الدخول مطلوب'
+                            : 'التحميل المباشر مفعّل'}
+                        </span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSetting(
+                          'require_login_for_download',
+                          settings.require_login_for_download !== 'false' ? 'false' : 'true'
+                        )
+                      }
+                      aria-pressed={settings.require_login_for_download !== 'false'}
+                      aria-label="تفعيل أو إيقاف طلب تسجيل الدخول قبل التحميل"
+                      className={cn(
+                        'relative w-14 h-8 rounded-full transition-colors shrink-0',
+                        settings.require_login_for_download !== 'false' ? 'bg-primary' : 'bg-border'
+                      )}
+                    >
+                      <motion.div
+                        animate={{ x: settings.require_login_for_download !== 'false' ? 24 : 4 }}
+                        className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg"
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-sm text-blue-800 dark:text-blue-300">
+                    <span className="text-base shrink-0">ℹ️</span>
+                    <div className="leading-relaxed">
+                      <p className="font-medium">ملاحظة</p>
+                      <p className="text-xs mt-0.5 opacity-80">
+                        لا تنسَ الضغط على زر «حفظ الإعدادات» في أعلى الصفحة لتطبيق التغيير على جميع زوار الموقع.
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import { safeJsonLd } from '@/lib/utils';
+import { getFrontSettings } from '@/lib/front-settings';
 import DownloadTimer from '@/components/download/DownloadTimer';
 import ClassHeader from '@/components/class/ClassHeader';
 import DownloadPageContent from '@/components/download/DownloadPageContent';
@@ -134,7 +135,19 @@ export default async function DownloadPage({ params, searchParams }: Props) {
     cookieStore.get('country_id')?.value
   );
 
-  const result = await getFileInfo(fileId, countryCode);
+  const countryId =
+    countryCode === 'sa' ? '2' : countryCode === 'eg' ? '3' : countryCode === 'ps' ? '4' : '1';
+
+  const [result, frontSettings] = await Promise.all([
+    getFileInfo(fileId, countryCode),
+    getFrontSettings(countryId, { cache: 'no-store' }).catch(() => ({} as Record<string, string | null>)),
+  ]);
+
+  const requireLoginForDownload = String(
+    (frontSettings as Record<string, string | null>)?.require_login_for_download ?? 'true'
+  )
+    .trim()
+    .toLowerCase() !== 'false';
 
   if (!result.ok && result.status === 404) {
     return (
@@ -278,6 +291,7 @@ export default async function DownloadPage({ params, searchParams }: Props) {
               fileType={file.file_type}
               viewsCount={file.views_count ?? 0}
               downloadCount={file.download_count ?? 0}
+              requireLoginForDownload={requireLoginForDownload}
             />
 
             {/* Rich Content Section - AdSense Compliant */}

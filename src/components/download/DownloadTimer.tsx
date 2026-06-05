@@ -30,6 +30,12 @@ interface Props {
   customDownloadUrl?: string;
   viewsCount?: number;
   downloadCount?: number;
+  /**
+   * Mirrors the dashboard "require_login_for_download" setting. When false,
+   * downloads are public — the auth modal and email-verification gate are
+   * skipped and the prepare endpoint is called anonymously.
+   */
+  requireLoginForDownload?: boolean;
 }
 
 type PrepareDownloadResponse = {
@@ -49,6 +55,7 @@ export default function DownloadTimer({
   customDownloadUrl,
   viewsCount = 0,
   downloadCount = 0,
+  requireLoginForDownload = true,
 }: Props) {
   const [views, setViews] = useState<number>(viewsCount);
   const [downloads, setDownloads] = useState<number>(downloadCount);
@@ -267,19 +274,23 @@ export default function DownloadTimer({
 
     setDownloadError(null);
 
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
+    // When the admin disables the login-for-download gate, skip every auth
+    // step so anonymous visitors can download immediately.
+    if (requireLoginForDownload) {
+      if (!isAuthenticated) {
+        setShowAuthModal(true);
+        return;
+      }
 
-    if (!isEmailVerified) {
-      setDownloadError('يرجى تأكيد البريد الإلكتروني قبل تحميل الملفات.');
-      return;
-    }
+      if (!isEmailVerified) {
+        setDownloadError('يرجى تأكيد البريد الإلكتروني قبل تحميل الملفات.');
+        return;
+      }
 
-    if (!isProfileComplete) {
-      setShowProfileModal(true);
-      return;
+      if (!isProfileComplete) {
+        setShowProfileModal(true);
+        return;
+      }
     }
 
     setIsPreparingDownload(true);
@@ -439,7 +450,7 @@ export default function DownloadTimer({
           </div>
         )}
 
-        {isAuthenticated && !isEmailVerified ? (
+        {requireLoginForDownload && isAuthenticated && !isEmailVerified ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
               <Lock size={24} />

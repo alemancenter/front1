@@ -124,6 +124,9 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
   const { isAuthenticated } = useAuthStore();
   const frontSettings = useFrontSettings();
   const adClient = (frontSettings?.adsense_client || '').toString();
+  const requireLoginForDownload =
+    String(frontSettings?.require_login_for_download ?? 'true').trim().toLowerCase() !== 'false';
+  const canDownloadDirectly = !requireLoginForDownload || isAuthenticated;
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const [comments, setComments] = useState<any[]>([]);
@@ -473,7 +476,7 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
                                 </div>
                               </div>
 
-                              {isAuthenticated ? (
+                              {canDownloadDirectly ? (
                                 <Link href={`/download/${file.id}`} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800">
                                   <Download className="h-4 w-4" />
                                   تحميل الملف

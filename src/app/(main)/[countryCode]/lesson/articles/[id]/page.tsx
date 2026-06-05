@@ -231,6 +231,8 @@ export default async function ArticlePage({ params }: Props) {
     googleAdsDesktop2: settings.google_ads_desktop_article_2 || '',
     googleAdsMobile2: settings.google_ads_mobile_article_2 || '',
   };
+  const requireLoginForDownload =
+    String((settings as any).require_login_for_download ?? 'true').trim().toLowerCase() !== 'false';
   const articlePlainText = (article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   const articleReadiness = evaluateAdsenseReadiness({
     title: article.title,
@@ -332,6 +334,7 @@ export default async function ArticlePage({ params }: Props) {
                   subject={article.subject?.subject_name || article.subject?.name}
                   category={categoryName}
                   sectionName={sectionName}
+                  requireLoginForDownload={requireLoginForDownload}
                 />
 
                 {/* Factual file summary — populated from real article data */}

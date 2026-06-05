@@ -257,14 +257,10 @@ export const requestSignedDownloadUrl = async (
 > => {
   const ctx = await getDownloadRequestContext(request);
 
-  if (!ctx.token) {
-    return {
-      ok: false,
-      status: 401,
-      code: 'AUTH_REQUIRED',
-      message: 'يرجى تسجيل الدخول أولًا لتحميل الملف.',
-    };
-  }
+  // Auth is now enforced by the backend based on the `require_login_for_download`
+  // public setting. When that setting is "false", the backend accepts anonymous
+  // calls, so we forward unauthenticated requests instead of short-circuiting
+  // with a 401 here.
 
   const backendUrl = new URL(`${ctx.apiBaseUrl}${API_ENDPOINTS.ARTICLES.DOWNLOAD_URL(fileId)}`);
   backendUrl.searchParams.set('database', ctx.countryCode);

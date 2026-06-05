@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import ArticleAds from '@/components/ads/ArticleAds';
 import { sanitizeRichHtml } from '@/lib/sanitize-html';
 import { useAuthStore } from '@/store/useStore';
+import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 
 interface File {
   id: number;
@@ -32,6 +33,7 @@ interface Props {
   subject?: string;
   category?: string;
   sectionName?: string;
+  requireLoginForDownload?: boolean;
 }
 
 function formatFileSize(bytes: number): string {
@@ -42,9 +44,18 @@ function formatFileSize(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
-export default function ArticleContent({ content, files, className, adSettings, showInlineAd, title, subject, category, sectionName }: Props) {
+export default function ArticleContent({ content, files, className, adSettings, showInlineAd, title, subject, category, sectionName, requireLoginForDownload }: Props) {
   const { isAuthenticated } = useAuthStore();
   const pathname = usePathname();
+  const frontSettings = useFrontSettings();
+  // Prefer the server-passed prop, fall back to the live client-side context.
+  // The client value keeps the gate accurate even when the page HTML was
+  // generated before the admin toggled the download setting.
+  const requireLoginResolved =
+    typeof requireLoginForDownload === 'boolean'
+      ? requireLoginForDownload
+      : String(frontSettings?.require_login_for_download ?? 'true').trim().toLowerCase() !== 'false';
+  const canDownloadDirectly = !requireLoginResolved || isAuthenticated;
 
   const trustedIframeOrigins = [
     'www.youtube.com',
@@ -144,7 +155,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
                     </div>
                   </div>
 
-                  {isAuthenticated ? (
+                  {canDownloadDirectly ? (
                     <Link
                       href={`/download/${file.id}`}
                       className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 font-bold text-white shadow-lg shadow-blue-700/20 transition-colors hover:bg-blue-800"
@@ -160,7 +171,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
                   )}
                 </div>
 
-                {!isAuthenticated ? (
+                {!canDownloadDirectly ? (
                   <div className="mt-3 flex flex-col items-center gap-2 border-t border-blue-50 pt-3 sm:flex-row">
                     <p className="flex items-center gap-1 text-xs font-medium text-slate-600 sm:flex-1">
                       <Lock size={12} />
