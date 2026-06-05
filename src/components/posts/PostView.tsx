@@ -477,8 +477,12 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
                               </div>
 
                               {canDownloadDirectly ? (
-                                <Link href={`/download/${file.id}`} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800">
-                                  <Download className="h-4 w-4" />
+                                <Link
+                                  href={`/download/${file.id}`}
+                                  aria-label={`تحميل ${file.file_name || 'الملف'}`}
+                                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
+                                >
+                                  <Download className="h-4 w-4" aria-hidden="true" />
                                   تحميل الملف
                                 </Link>
                               ) : (

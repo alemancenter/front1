@@ -142,9 +142,15 @@ export default async function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
 
-        {/* Cairo is loaded via @font-face with font-display:swap.
-            Font preloads are intentionally disabled to avoid unused-preload warnings
-            on dashboard pages that do not immediately render all font weights. */}
+        {/* Preload Cairo Regular — it's the body font and a render-blocking
+            dependency for FCP/LCP on every page. The other weights stay lazy. */}
+        <link
+          rel="preload"
+          href="/fonts/cairo/Cairo-Regular.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Preconnect to the API — starts TCP+TLS handshake before first client fetch */}
         {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
         {apiOrigin && <link rel="dns-prefetch" href={apiOrigin} />}
@@ -167,10 +173,11 @@ export default async function RootLayout({
           <meta name="google-adsense-account" content={normalizedAdsenseClient} />
         )}
         {marketingEnabled && normalizedAdsenseClient && (
-          <>
-            <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-            <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
-          </>
+          // DNS-prefetch only. The actual <script> is loaded via
+          // DeferredMarketingTags after consent + 1.2s idle, so a full
+          // `preconnect` here is wasted before LCP (Lighthouse flagged the
+          // socket as "unused" in the critical path).
+          <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         )}
       </head>
       <body className="antialiased min-h-screen">

@@ -9,8 +9,11 @@ import ArticleContentWrapper from '@/components/article/ArticleContentWrapper';
 import SidebarAdWrapper from '@/components/article/SidebarAdWrapper';
 import RelatedArticles from '@/components/article/RelatedArticles';
 import SeoContentBlock from '@/components/article/SeoContentBlock';
-import ArticleComments from '@/components/article/ArticleComments';
 import ArticleAds from '@/components/ads/ArticleAds';
+// ArticleComments lives well below the fold and pulls in motion + lucide icons.
+// LazyArticleComments is a thin client wrapper that defers loading the chunk
+// (ssr: false), keeping it off the LCP critical path.
+import ArticleComments from '@/components/article/LazyArticleComments';
 import { STANDARD_CATEGORIES } from '@/components/subject/SemesterList';
 import { getFrontSettings } from '@/lib/front-settings';
 import { getAdLimit, shouldShowAds } from '@/lib/ads-policy';

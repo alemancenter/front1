@@ -279,7 +279,10 @@ const nextConfig: NextConfig = {
       'recharts',
     ],
     scrollRestoration: true,
-    optimizeCss: false,
+    // Inline critical CSS via `critters` (already in devDependencies) so the
+    // initial render no longer waits on the ~30KB Tailwind chunk that Lighthouse
+    // flagged as a 300ms render-blocking request on /lesson/articles/*.
+    optimizeCss: true,
   },
 
   compiler: {

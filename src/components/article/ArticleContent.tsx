@@ -158,9 +158,10 @@ export default function ArticleContent({ content, files, className, adSettings, 
                   {canDownloadDirectly ? (
                     <Link
                       href={`/download/${file.id}`}
+                      aria-label={`تحميل ${file.file_name || 'الملف'}`}
                       className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 font-bold text-white shadow-lg shadow-blue-700/20 transition-colors hover:bg-blue-800"
                     >
-                      <Download size={18} />
+                      <Download size={18} aria-hidden="true" />
                       <span className="hidden sm:inline">تحميل</span>
                     </Link>
                   ) : (
