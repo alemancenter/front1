@@ -5,6 +5,8 @@ import KeywordSearchForm from './KeywordSearchForm';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import Link from 'next/link';
+import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 interface Props {
   params: Promise<{
@@ -12,10 +14,26 @@ interface Props {
   }>;
 }
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: 'بحث عن الكلمات المفتاحية | منصة التعليم',
   description: 'ابحث عن المقالات والملفات باستخدام الكلمات المفتاحية',
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { countryCode } = await params;
+  const settings = await getFrontSettings();
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson/articles/keyword`);
+
+  return {
+    ...metadata,
+    alternates: canonical.alternates,
+    openGraph: {
+      title: metadata.title as string,
+      type: 'website',
+      ...canonical.openGraph,
+    },
+  };
+}
 
 async function getPopularKeywords(countryCode: string) {
   try {

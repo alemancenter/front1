@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/api/config';
 import EducationalPageHero from '@/components/common/EducationalPageHero';
 import { getSchoolClasses } from '@/lib/academic-data';
+import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 // Academic structure changes rarely; keep ISR aligned with the backend long-lived cache.
 export const revalidate = 86400;
@@ -19,7 +21,12 @@ export async function generateMetadata({ params }: { params: Promise<{ countryCo
     return { title: 'Page Not Found' };
   }
 
+  const settings = await getFrontSettings();
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson`);
+
   return {
+    alternates: canonical.alternates,
+    openGraph: canonical.openGraph,
     title: `الصفوف الدراسية - ${country.name}`,
     description: `تصفح الصفوف الدراسية المتاحة في ${country.name} للوصول إلى المواد والملفات التعليمية.`,
   };

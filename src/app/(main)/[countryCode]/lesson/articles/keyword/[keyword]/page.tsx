@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import ClassHeader from '@/components/class/ClassHeader';
 import { Calendar, Eye, ChevronLeft, Home, FileText } from 'lucide-react';
+import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 interface Props {
   params: Promise<{
@@ -33,12 +35,16 @@ async function getArticlesByKeyword(keyword: string, countryCode: string) {
 
 // Generate Metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { keyword } = await params;
+  const { countryCode, keyword } = await params;
   const decodedKeyword = decodeURIComponent(keyword);
+  const settings = await getFrontSettings();
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson/articles/keyword/${encodeURIComponent(decodedKeyword)}`);
 
   return {
     title: `مقالات حول ${decodedKeyword} | منصة التعليم`,
     description: `تصفح جميع المقالات والملفات المتعلقة بـ ${decodedKeyword} في منصة التعليم`,
+    alternates: canonical.alternates,
+    openGraph: canonical.openGraph,
     robots: {
       index: true,
       follow: true,

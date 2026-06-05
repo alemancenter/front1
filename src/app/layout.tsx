@@ -97,7 +97,6 @@ export async function generateMetadata(): Promise<Metadata> {
       'المنصة التعليمية الرائدة للأخبار التربوية، المناهج الدراسية، نتائج الامتحانات، والملفات التعليمية للمعلمين والطلاب في الأردن والدول العربية.',
     keywords:
       metaKeywords || ['تعليم', 'أخبار التعليم', 'نتائج الامتحانات', 'مناهج', 'دروس', 'ملفات تعليمية', 'الأردن', 'طلاب', 'معلمين', 'وزارة التربية والتعليم'],
-    alternates: canonicalUrl ? { canonical: canonicalUrl } : undefined,
     icons: {
       icon: iconList,
       shortcut: faviconFallback,
@@ -111,7 +110,6 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       locale: 'ar_JO',
       siteName: siteName || undefined,
-      ...(canonicalUrl ? { url: canonicalUrl } : {}),
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
   };

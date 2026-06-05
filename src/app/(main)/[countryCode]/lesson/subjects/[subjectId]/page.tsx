@@ -1,10 +1,12 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import SubjectHeader from '@/components/subject/SubjectHeader';
 import SubjectBreadcrumb from '@/components/subject/SubjectBreadcrumb';
 import SemesterList from '@/components/subject/SemesterList';
 import SemesterListWrapper from '@/components/subject/SemesterListWrapper';
 import { getSubjectSemesters } from '@/lib/academic-data';
 import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{
@@ -18,6 +20,25 @@ interface PageProps {
 
 // Academic semesters are stable; content itself is cached separately in article endpoints.
 export const revalidate = 86400;
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { countryCode, subjectId } = await params;
+  const [{ subjectName }, settings] = await Promise.all([
+    getSubjectSemesters(countryCode, subjectId),
+    getFrontSettings(),
+  ]);
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson/subjects/${subjectId}`);
+
+  return {
+    title: `${subjectName} | منصة التعليم`,
+    alternates: canonical.alternates,
+    openGraph: {
+      title: subjectName,
+      type: 'website',
+      ...canonical.openGraph,
+    },
+  };
+}
 
 export default async function SubjectSemestersPage({ params, searchParams }: PageProps) {
   const { countryCode, subjectId } = await params;

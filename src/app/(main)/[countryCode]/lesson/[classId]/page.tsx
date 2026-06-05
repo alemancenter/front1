@@ -8,6 +8,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import { COUNTRIES } from '@/lib/api/config';
 import { getSchoolClass } from '@/lib/academic-data';
 import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{
@@ -50,6 +51,8 @@ export async function generateMetadata({
   const title = `${gradeName} - المنهاج الدراسي ${country.name} | ${resolvedSiteName}`;
   const description = `استكشف المواد الدراسية والملفات التعليمية الخاصة بـ ${gradeName} ضمن المنهاج الدراسي في ${country.name} على منصة ${resolvedSiteName}.`;
 
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson/${classId}`);
+
   const keywords: string[] = [
     gradeName,
     classInfo?.grade_level ? `صف ${classInfo.grade_level}` : 'صف دراسي',
@@ -63,10 +66,12 @@ export async function generateMetadata({
     title,
     description,
     keywords,
+    alternates: canonical.alternates,
     openGraph: {
       title,
       description,
       type: 'website',
+      ...canonical.openGraph,
     },
   };
 }

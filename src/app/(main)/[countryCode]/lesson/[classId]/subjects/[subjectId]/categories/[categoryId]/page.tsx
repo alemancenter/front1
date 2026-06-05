@@ -1,9 +1,12 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import CategoryHeader from '@/components/category/CategoryHeader';
 import CategoryBreadcrumb from '@/components/category/CategoryBreadcrumb';
 import CategoryArticlesList from '@/components/category/CategoryArticlesList';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
+import { getFrontSettings } from '@/lib/front-settings';
+import { canonicalMetadata } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{
@@ -47,6 +50,29 @@ async function getSubjectAndSemesterInfo(countryCode: string, subjectId: string,
   } catch {
     return { subjectName: 'المادة الدراسية', semesterName: 'الفصل الدراسي' };
   }
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const { countryCode, classId, subjectId, categoryId } = await params;
+  const { semester } = await searchParams;
+  const semesterId = semester || '1';
+  const categoryName = getCategoryName(categoryId);
+  const [{ subjectName, semesterName }, settings] = await Promise.all([
+    getSubjectAndSemesterInfo(countryCode, subjectId, semesterId),
+    getFrontSettings(),
+  ]);
+  const canonical = canonicalMetadata(settings, `/${countryCode}/lesson/${classId}/subjects/${subjectId}/categories/${categoryId}`);
+  const title = `${subjectName} - ${semesterName} - ${categoryName}`;
+
+  return {
+    title,
+    alternates: canonical.alternates,
+    openGraph: {
+      title,
+      type: 'website',
+      ...canonical.openGraph,
+    },
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
