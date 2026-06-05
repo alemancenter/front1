@@ -130,8 +130,7 @@ export default async function RootLayout({
   const marketingEnabled =
     marketingFlag === 'true' ||
     (marketingFlag !== 'false' && process.env.NODE_ENV === 'production');
-  const gtmId = (process.env.NEXT_PUBLIC_GTM_ID || 'GTM-T5G89XRM').toString().trim();
-  const shouldLoadStandaloneGa = Boolean(gaId && !gtmId);
+  const shouldLoadStandaloneGa = Boolean(gaId);
   const apiOrigin = (() => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL;
@@ -179,7 +178,6 @@ export default async function RootLayout({
           <StoreHydration />
           <DeferredMarketingTags
             enabled={marketingEnabled}
-            gtmId={gtmId}
             adsenseClient={normalizedAdsenseClient}
           />
           <GoogleAnalytics gaId={marketingEnabled && shouldLoadStandaloneGa ? gaId : ''} />

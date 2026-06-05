@@ -1,32 +1,61 @@
 'use client';
 
-import Script from 'next/script';
+import { useEffect } from 'react';
+import { getStoredConsent, type ConsentState } from '@/lib/cookie-consent';
+import { loadScriptOnce, runAfterIdle } from '@/lib/performance/loadThirdParties';
 
 type Props = {
   gaId?: string | null;
 };
 
-/**
- * Google Analytics — GCM Advanced Mode.
- *
- * The script loads after the page's critical work. Data collection is gated by
- * the consent signals set in
- * layout.tsx <head>: analytics_storage defaults to "denied" and only becomes
- * "granted" after our consent banner fires gtag('consent','update',{...}).
- * No _ga / _gid cookies are written while analytics_storage is denied.
- */
-export default function GoogleAnalytics({ gaId }: Props) {
-  if (!gaId) return null;
+const hasAnalyticsConsent = (state: ConsentState | null) =>
+  Boolean(state?.categories?.includes('analytics'));
 
-  return (
-    <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-        strategy="lazyOnload"
-      />
-      <Script id="google-analytics" strategy="lazyOnload">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`}
-      </Script>
-    </>
-  );
+const configureAnalytics = (gaId: string) => {
+  const win = window as Window & {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  };
+
+  win.dataLayer = win.dataLayer || [];
+  win.gtag = win.gtag || ((...args: unknown[]) => { win.dataLayer?.push(args); });
+  win.gtag('js', new Date());
+  win.gtag('config', gaId);
+};
+
+export default function GoogleAnalytics({ gaId }: Props) {
+  useEffect(() => {
+    const id = (gaId || '').trim();
+    if (!id) return;
+
+    const loadAnalytics = () => {
+      loadScriptOnce('google-analytics', `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`);
+      configureAnalytics(id);
+    };
+
+    const stored = getStoredConsent();
+    if (stored) {
+      if (hasAnalyticsConsent(stored)) {
+        runAfterIdle(loadAnalytics, 1200);
+      }
+      return;
+    }
+
+    const onConsentUpdate = () => {
+      if (hasAnalyticsConsent(getStoredConsent())) {
+        loadAnalytics();
+      }
+      cleanup();
+    };
+
+    const cleanup = () => {
+      window.removeEventListener('ckyConsentUpdate', onConsentUpdate);
+    };
+
+    window.addEventListener('ckyConsentUpdate', onConsentUpdate);
+
+    return cleanup;
+  }, [gaId]);
+
+  return null;
 }
