@@ -38,6 +38,21 @@ Disallow: /auth/
 Disallow: /*?*country=
 Disallow: /*?*sort=
 Disallow: /*?*filter=
+Disallow: /search
+Disallow: /*?tab=
+Disallow: /*?page=
+Disallow: /*?return=
+Disallow: /*?urlpath=
+Disallow: /download-wait/
+
+# Old forum/upload system: keep crawlers away from infinite/legacy paths
+Disallow: /vb/
+Disallow: /up/
+Disallow: /forum/
+Disallow: /threads/
+Disallow: /members/
+Disallow: /member/
+
 
 # Block raw JSON dumps
 Disallow: /*.json$
