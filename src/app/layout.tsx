@@ -142,14 +142,25 @@ export default async function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
 
-        {/* Preload Cairo Regular — it's the body font and a render-blocking
-            dependency for FCP/LCP on every page. The other weights stay lazy. */}
+        {/* Preload the two weights that actually drive LCP above the fold:
+            Bold (used by the article H1 / font-black) and SemiBold (used by
+            badges, buttons, navbar). Regular is left to swap-in lazily — the
+            system fallback covers body text without affecting LCP timing. */}
         <link
           rel="preload"
-          href="/fonts/cairo/Cairo-Regular.woff2"
+          href="/fonts/cairo/Cairo-Bold.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          href="/fonts/cairo/Cairo-SemiBold.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          fetchPriority="high"
         />
         {/* Preconnect to the API — starts TCP+TLS handshake before first client fetch */}
         {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
