@@ -22,6 +22,7 @@ export { default as emailVerificationService } from './email-verification';
 export { commentsService } from './comments';
 export { monitorService } from './monitor';
 export { contentAuditService } from './content-audit';
+export { teacherSubscriptionService } from './teacher-subscription';
 export type { PolicyAuditRun, PolicyAuditFinding } from './content-audit';
 
 // Export API client and config

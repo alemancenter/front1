@@ -488,6 +488,7 @@ class ApiClient {
     const url = this.buildUrl(endpoint, params);
     const isGetRequest = !fetchOptions.method || fetchOptions.method === 'GET';
     const isServerSide = typeof window === 'undefined';
+    const isFormDataBody = typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
 
     const headers: HeadersInit = {
       Accept: 'application/json',
@@ -496,7 +497,7 @@ class ApiClient {
       ...(options.headers || {}),
     };
 
-    if (!isGetRequest) {
+    if (!isGetRequest && !isFormDataBody) {
       (headers as Record<string, string>)['Content-Type'] = 'application/json';
     }
 
@@ -695,6 +696,93 @@ class ApiClient {
     }
   }
 
+  async downloadBlob(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | undefined>,
+    options?: Omit<RequestOptions, 'method' | 'params'>
+  ): Promise<{ blob: Blob; filename: string }> {
+    const bypassSessionGate = this.shouldBypassSessionGate(endpoint);
+
+    if (typeof window !== 'undefined' && !this.sessionRestored && !bypassSessionGate) {
+      await this.sessionReadyPromise;
+    }
+
+    const { timeout = this.requestTimeout, retries = this.maxRetries, suppressAuthRedirect, ...fetchOptions } = options || {};
+    const url = this.buildUrl(endpoint, params);
+    const isServerSide = typeof window === 'undefined';
+
+    const headers: HeadersInit = {
+      Accept: '*/*',
+      'X-App-Locale': 'ar',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(options?.headers || {}),
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('settings-storage');
+        const state = raw ? JSON.parse(raw)?.state : null;
+        if (state?.country?.id) {
+          (headers as Record<string, string>)['X-Country-Id'] = state.country.id;
+          (headers as Record<string, string>)['X-Country-Code'] = state.country.code ?? '';
+        }
+      } catch {}
+    }
+
+    const token = this.getToken();
+
+    if (token) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (isServerSide) {
+      (headers as Record<string, string>)['Host'] = getApiHostname();
+    }
+
+    const response = await this.fetchWithRetry(
+      url,
+      {
+        ...fetchOptions,
+        method: 'GET',
+        headers,
+        credentials: isServerSide ? 'omit' : 'include',
+      },
+      retries,
+      timeout
+    );
+
+    if (!response.ok) {
+      if (response.status === 401 && !suppressAuthRedirect) {
+        const refreshed = await this.refreshToken();
+        if (refreshed) {
+          return this.downloadBlob(endpoint, params, { ...options, suppressAuthRedirect: true });
+        }
+        this.handleUnauthorizedRedirect();
+      }
+
+      let message = 'تعذر تحميل الملف';
+      try {
+        const data = await response.clone().json();
+        message = data?.message || message;
+      } catch {}
+
+      const err = new Error(message);
+      (err as any).status = response.status;
+      (err as any).isForbidden = response.status === 403;
+      throw err;
+    }
+
+    const disposition = response.headers.get('content-disposition') || '';
+    const filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^"]+)"?/i);
+    const filename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || 'teacher-premium-file');
+
+    return {
+      blob: await response.blob(),
+      filename,
+    };
+  }
+
+
   async get<T>(
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined>,
@@ -749,9 +837,11 @@ class ApiClient {
     data?: any,
     options?: RequestOptions
   ): Promise<ApiResponse<T>> {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+
     const response = await this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? (isFormData ? data : JSON.stringify(data)) : undefined,
       ...options,
     });
 

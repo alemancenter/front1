@@ -6,9 +6,17 @@ export interface AdSlotConfig {
   ad_slot: string;
   format: string;
   responsive: boolean;
+  ad_layout?: string;
+  ad_layout_key?: string;
+  ad_type?: 'display' | 'in_article';
 }
 
-const AD_ALLOWED_KEYS = new Set(['ad_slot', 'format', 'responsive']);
+const AD_ALLOWED_KEYS = new Set(['ad_slot', 'format', 'responsive', 'ad_layout', 'ad_layout_key', 'ad_type']);
+
+const attrValue = (source: string, attr: string): string => {
+  const match = source.match(new RegExp(`${attr}=["']([^"']+)["']`, 'i'));
+  return match?.[1]?.trim() ?? '';
+};
 
 /**
  * Parse a stored ad setting value into a typed AdSlotConfig.
@@ -30,6 +38,9 @@ export function parseAdSlotConfig(raw: string): AdSlotConfig | null {
       ad_slot: slot,
       format: typeof parsed.format === 'string' ? parsed.format : 'auto',
       responsive: typeof parsed.responsive === 'boolean' ? parsed.responsive : true,
+      ad_layout: typeof parsed.ad_layout === 'string' ? parsed.ad_layout : undefined,
+      ad_layout_key: typeof parsed.ad_layout_key === 'string' ? parsed.ad_layout_key : undefined,
+      ad_type: parsed.ad_type === 'in_article' ? 'in_article' : 'display',
     };
   } catch {
     return null;
@@ -43,9 +54,53 @@ export function buildAdSlotValue(slotId: string): string {
   return JSON.stringify({ ad_slot: id, format: 'auto', responsive: true });
 }
 
+/** Extract an In-Article slot from pasted AdSense code and store it safely. */
+export function buildInArticleAdValue(rawCode: string): string {
+  const raw = (rawCode || '').trim();
+  if (!raw) return '';
+
+  const existing = parseAdSlotConfig(raw);
+  if (existing) {
+    return JSON.stringify({
+      ...existing,
+      format: existing.format || 'fluid',
+      responsive: true,
+      ad_layout: existing.ad_layout || 'in-article',
+      ad_type: 'in_article',
+    });
+  }
+
+  const slot = attrValue(raw, 'data-ad-slot') || (/^\d+$/.test(raw) ? raw : '');
+  if (!slot) return '';
+
+  return JSON.stringify({
+    ad_slot: slot,
+    format: attrValue(raw, 'data-ad-format') || 'fluid',
+    responsive: attrValue(raw, 'data-full-width-responsive') !== 'false',
+    ad_layout: attrValue(raw, 'data-ad-layout') || 'in-article',
+    ad_layout_key: attrValue(raw, 'data-ad-layout-key') || undefined,
+    ad_type: 'in_article',
+  });
+}
+
 /** Extract just the slot ID from a stored JSON value, for dashboard inputs. */
 export function extractSlotId(raw: string): string {
   return parseAdSlotConfig(raw)?.ad_slot ?? '';
+}
+
+/** Show saved structured config as a pasteable AdSense-like snippet in dashboard textareas. */
+export function formatAdSnippetForInput(raw: string, adClient = 'ca-pub-xxxxxxxxxxxxxxxx'): string {
+  const config = parseAdSlotConfig(raw);
+  if (!config) return '';
+
+  const layout = config.ad_layout ? `\n     data-ad-layout="${config.ad_layout}"` : '';
+  const layoutKey = config.ad_layout_key ? `\n     data-ad-layout-key="${config.ad_layout_key}"` : '';
+  return `<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-client="${adClient}"
+     data-ad-slot="${config.ad_slot}"${layout}
+     data-ad-format="${config.format || 'fluid'}"${layoutKey}
+     data-full-width-responsive="${String(config.responsive)}"></ins>`;
 }
 
 // ── Legacy helpers (kept for backward compatibility) ─────────────────────────

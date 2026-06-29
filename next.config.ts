@@ -147,6 +147,17 @@ const connectSrc = [
 ].filter(Boolean).join(' ');
 
 const frameSrc = googleAdFrameSources.join(' ');
+const styleSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  'https://fonts.googleapis.com',
+].join(' ');
+
+const fontSrc = [
+  "'self'",
+  'data:',
+  'https://fonts.gstatic.com',
+].join(' ');
 
 const securityHeaders = [
   {
@@ -195,9 +206,10 @@ const securityHeaders = [
        */
       `script-src ${scriptSrc}`,
       `script-src-elem ${scriptSrc}`,
-      "style-src 'self' 'unsafe-inline'",
+      `style-src ${styleSrc}`,
+      `style-src-elem ${styleSrc}`,
       "img-src 'self' data: blob: https: http://127.0.0.1:8082 http://127.0.0.1:8082 http://localhost:8082 http://localhost:8082 http://localhost:3000",
-      "font-src 'self' data:",
+      `font-src ${fontSrc}`,
 
       `connect-src ${connectSrc}`,
       `frame-src ${frameSrc}`,

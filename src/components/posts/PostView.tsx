@@ -37,6 +37,7 @@ import Image from '@/components/common/AppImage';
 import Badge from '@/components/ui/Badge';
 import PostSeoContentBlock from './PostSeoContentBlock';
 import ResponsiveAd from '@/components/ads/ResponsiveAd';
+import InArticleAd from '@/components/ads/InArticleAd';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import { sanitizeRichHtml } from '@/lib/sanitize-html';
 import { shouldShowAds, getAdLimit } from '@/lib/ads-policy';
@@ -51,6 +52,7 @@ interface PostViewProps {
     googleAdsMobile: string;
     googleAdsDesktop2: string;
     googleAdsMobile2: string;
+    googleAdsInArticle?: string;
   };
 }
 
@@ -226,6 +228,19 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
     });
     return { contentWithIds: content, toc: headers };
   }, [post.content]);
+
+  const contentAdSlot = useMemo(() => {
+    const paragraphMatches = Array.from(contentWithIds.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi));
+    const anchor = paragraphMatches[1] ?? paragraphMatches[0];
+    const splitIndex = anchor ? anchor.index! + anchor[0].length : -1;
+    return {
+      before: splitIndex > 0 ? contentWithIds.slice(0, splitIndex) : contentWithIds,
+      after: splitIndex > 0 ? contentWithIds.slice(splitIndex) : '',
+      canInsert: splitIndex > 0,
+    };
+  }, [contentWithIds]);
+
+  const hasInArticleAd = Boolean(adSettings?.googleAdsInArticle);
 
   useEffect(() => {
     const incrementView = async () => {
@@ -413,7 +428,7 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
               </div>
 
               <div className="p-5 md:p-8 lg:p-10">
-                {isMounted && adPolicy.showAds && adPolicy.adLimit >= 1 && (
+                {isMounted && adPolicy.showAds && adPolicy.adLimit >= 1 && !hasInArticleAd && (
                   <div className="mb-8 rounded-[1.75rem] border border-slate-100 bg-slate-50 p-4">
                     <ResponsiveAd adClient={adClient} desktopCode={adSettings?.googleAdsDesktop || undefined} mobileCode={adSettings?.googleAdsMobile || undefined} />
                   </div>
@@ -439,7 +454,13 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
                   </p>
                 </section>
 
-                <div className="rich-content max-w-none text-right" dangerouslySetInnerHTML={{ __html: contentWithIds }} />
+                <div className="rich-content max-w-none text-right">
+                  <div dangerouslySetInnerHTML={{ __html: contentAdSlot.before }} />
+                  {isMounted && adPolicy.showAds && adPolicy.adLimit >= 1 && hasInArticleAd && contentAdSlot.canInsert ? (
+                    <InArticleAd code={adSettings?.googleAdsInArticle} />
+                  ) : null}
+                  {contentAdSlot.after ? <div dangerouslySetInnerHTML={{ __html: contentAdSlot.after }} /> : null}
+                </div>
 
                 <PostSeoContentBlock
                   title={post.title}

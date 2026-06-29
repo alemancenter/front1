@@ -51,8 +51,11 @@ const getArticle = async (id: string, countryCode: string) => {
   }
 };
 
-const getPublicSettings = async (): Promise<Record<string, string | null>> => {
-  return getFrontSettings();
+const countryIdFromCode = (countryCode: string): string =>
+  countryCode === 'sa' ? '2' : countryCode === 'eg' ? '3' : countryCode === 'ps' ? '4' : '1';
+
+const getPublicSettings = async (countryCode = 'jo'): Promise<Record<string, string | null>> => {
+  return getFrontSettings(countryIdFromCode(countryCode), { cache: 'no-store' });
 };
 
 const getAdStatus = async (id: string, countryCode: string): Promise<{ eligible: boolean; adsense_risk: string }> => {
@@ -62,7 +65,8 @@ const getAdStatus = async (id: string, countryCode: string): Promise<{ eligible:
       { country: countryCode },
       { next: { revalidate: 120 } } as any
     );
-    return response.data ?? { eligible: true, adsense_risk: 'none' };
+    const body = response.data as any;
+    return body?.data ?? body ?? { eligible: true, adsense_risk: 'none' };
   } catch {
     return { eligible: true, adsense_risk: 'none' };
   }
@@ -73,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { countryCode, id } = await params;
   const [article, settings] = await Promise.all([
     getArticle(id, countryCode),
-    getPublicSettings(),
+    getPublicSettings(countryCode),
   ]);
 
   if (!article) {
@@ -202,7 +206,7 @@ export default async function ArticlePage({ params }: Props) {
   // Fetch article, settings, and ad eligibility in parallel
   const [article, settings, adStatus] = await Promise.all([
     getArticle(id, countryCode),
-    getPublicSettings(),
+    getPublicSettings(countryCode),
     getAdStatus(id, countryCode),
   ]);
 
@@ -234,6 +238,7 @@ export default async function ArticlePage({ params }: Props) {
     googleAdsDesktop2: settings.google_ads_desktop_article_2 || '',
     googleAdsMobile2: settings.google_ads_mobile_article_2 || '',
   };
+  const inArticleAdCode = settings.google_ads_in_article_article || '';
   const requireLoginForDownload =
     String((settings as any).require_login_for_download ?? 'true').trim().toLowerCase() !== 'false';
   const articlePlainText = (article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -333,6 +338,7 @@ export default async function ArticlePage({ params }: Props) {
                   backLink={`/${countryCode}/lesson/articles/${article.id}`}
                   adSettings={adSettings}
                   showInlineAd={showArticleAds && articleAdLimit >= 1}
+                  inArticleAdCode={inArticleAdCode}
                   title={article.title}
                   subject={article.subject?.subject_name || article.subject?.name}
                   category={categoryName}

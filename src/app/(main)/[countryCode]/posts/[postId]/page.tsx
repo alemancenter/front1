@@ -43,8 +43,11 @@ const getPost = cache(async (countryCode: string, postId: string) => {
   }
 });
 
-async function getPublicSettings(): Promise<Record<string, string | null>> {
-  return getFrontSettings();
+const countryIdFromCode = (countryCode: string): string =>
+  countryCode === 'sa' ? '2' : countryCode === 'eg' ? '3' : countryCode === 'ps' ? '4' : '1';
+
+async function getPublicSettings(countryCode = 'jo'): Promise<Record<string, string | null>> {
+  return getFrontSettings(countryIdFromCode(countryCode), { cache: 'no-store' });
 }
 
 interface PageProps {
@@ -57,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Fetch post and public settings in parallel for SEO metadata
   const [post, settings] = await Promise.all([
     getPost(countryCode, postId),
-    getPublicSettings(),
+    getPublicSettings(countryCode),
   ]);
 
   if (!post) {
@@ -199,7 +202,7 @@ export default async function PostPage({
   // Fetch post and settings in parallel
   const [post, settings] = await Promise.all([
     getPost(countryCode, postId),
-    getPublicSettings(),
+    getPublicSettings(countryCode),
   ]);
 
   if (!post) {
@@ -212,6 +215,7 @@ export default async function PostPage({
     googleAdsMobile: settings.google_ads_mobile_news || '',
     googleAdsDesktop2: settings.google_ads_desktop_news_2 || '',
     googleAdsMobile2: settings.google_ads_mobile_news_2 || '',
+    googleAdsInArticle: settings.google_ads_in_article_post || '',
   };
 
   // Build base URL and site name at runtime for JSON-LD

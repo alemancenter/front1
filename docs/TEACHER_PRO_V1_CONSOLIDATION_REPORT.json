@@ -1,0 +1,16 @@
+{
+  "source_file": "front01(2).zip",
+  "consolidation": "Teacher Pro v1",
+  "checked_at": "2026-06-07 16:52:25",
+  "checks": {
+    "duplicate_pricing_route_removed": true,
+    "main_pricing_teacher_exists": true,
+    "devices_item_scope_fixed": true,
+    "teacher_reports_page": true,
+    "teacher_analytics_page": true,
+    "teacher_detail_page": true,
+    "teacher_notifications_page_safe": true,
+    "premium_upload_auto_file_type": true,
+    "api_client_formdata_and_blob": true
+  }
+}

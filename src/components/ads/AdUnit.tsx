@@ -58,6 +58,8 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
         data-ad-client={adClient}
         data-ad-slot={config.ad_slot}
         data-ad-format={config.format}
+        data-ad-layout={config.ad_layout || undefined}
+        data-ad-layout-key={config.ad_layout_key || undefined}
         data-full-width-responsive={String(config.responsive)}
       />
     </div>

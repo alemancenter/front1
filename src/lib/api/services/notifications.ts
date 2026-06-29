@@ -65,7 +65,7 @@ export const notificationService = {
     const response = await apiClient.get<any>(
       API_ENDPOINTS.NOTIFICATIONS.LATEST,
       { limit },
-      { suppressAuthRedirect: true }
+      { suppressAuthRedirect: true, cache: 'no-store', retries: 0, timeout: 7000 }
     );
     // Backend wraps response as: { success, message, data: { notifications: [...], unread_count: N } }
     const inner = response.data?.data ?? response.data;

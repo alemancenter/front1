@@ -19,6 +19,8 @@ export default function NotificationsDropdown() {
   // to avoid flooding the server with repeated 403 errors.
   const [pollEnabled, setPollEnabled] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationFailureUntilRef = useRef<number>(0);
+  const notificationConsecutiveFailuresRef = useRef<number>(0);
   const { country } = useCountryStore();
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const pathname = usePathname();
@@ -39,6 +41,10 @@ export default function NotificationsDropdown() {
   const fetchNotifications = useCallback(async () => {
     if (!canUseDashboardNotifications) return;
 
+    if (notificationFailureUntilRef.current > Date.now()) {
+      return;
+    }
+
     const token = getAuthToken();
     if (!token) {
       logout();
@@ -48,20 +54,29 @@ export default function NotificationsDropdown() {
     }
     try {
       const res = await notificationService.getLatest(10);
+      notificationConsecutiveFailuresRef.current = 0;
+      notificationFailureUntilRef.current = 0;
       const notifs = Array.isArray(res.data) ? res.data : [];
       setNotifications(notifs);
       setUnreadCount(res.unread_count || 0);
     } catch (error: any) {
       if (error?.status === 401) {
-        // Token invalid/expired — clear it so future polls don't repeat the 401
+        // Token invalid/expired — clear it so future polls don't repeat the 401.
         apiClient.setToken(null);
         logout();
-      } else if (error?.status === 403) {
-        // No permission (unverified email or regular member without dashboard access).
-        // Stop polling permanently for this session to avoid a 403 flood every 30s.
+      } else if (error?.status === 403 || error?.status === 404) {
+        // No permission or endpoint unavailable in this environment.
+        // Stop polling for this session to avoid browser/server noise.
         setPollEnabled(false);
       } else {
-        console.error('Failed to fetch notifications', error);
+        // Network/CORS/backend-down failures are non-critical for the dashboard.
+        // Do not spam console every interval; apply a temporary cooldown.
+        notificationConsecutiveFailuresRef.current += 1;
+        const cooldownMs = Math.min(300000, 30000 * notificationConsecutiveFailuresRef.current);
+        notificationFailureUntilRef.current = Date.now() + cooldownMs;
+        if (process.env.NODE_ENV === 'development' && notificationConsecutiveFailuresRef.current === 1) {
+          console.warn('Notifications temporarily unavailable; polling slowed down.', error?.message || error);
+        }
       }
       setNotifications([]);
       setUnreadCount(0);
@@ -79,7 +94,7 @@ export default function NotificationsDropdown() {
 
     fetchNotifications();
     // Poll every 60 seconds (was 30s — halved to reduce server load)
-    const interval = setInterval(fetchNotifications, 60000);
+    const interval = setInterval(fetchNotifications, 120000);
     // Immediate refresh when content is created (dispatched by notificationService.send)
     window.addEventListener('notifications:refresh', fetchNotifications);
     return () => {
@@ -108,7 +123,7 @@ export default function NotificationsDropdown() {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
       setUnreadCount(res.unread_count);
     } catch (error) {
-      console.error('Failed to mark as read', error);
+      if (process.env.NODE_ENV === 'development') console.warn('Failed to mark as read', error);
     }
   };
 
@@ -119,7 +134,7 @@ export default function NotificationsDropdown() {
       setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to mark all as read', error);
+      if (process.env.NODE_ENV === 'development') console.warn('Failed to mark all as read', error);
     } finally {
       setLoading(false);
     }

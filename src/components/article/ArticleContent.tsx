@@ -4,6 +4,7 @@ import { AlertCircle, BookOpen, CheckCircle, Download, FileText, Info, Lock, Log
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ArticleAds from '@/components/ads/ArticleAds';
+import InArticleAd from '@/components/ads/InArticleAd';
 import { sanitizeRichHtml } from '@/lib/sanitize-html';
 import { useAuthStore } from '@/store/useStore';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
@@ -29,6 +30,7 @@ interface Props {
     googleAdsMobile2: string;
   };
   showInlineAd?: boolean;
+  inArticleAdCode?: string;
   title?: string;
   subject?: string;
   category?: string;
@@ -44,7 +46,7 @@ function formatFileSize(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
-export default function ArticleContent({ content, files, className, adSettings, showInlineAd, title, subject, category, sectionName, requireLoginForDownload }: Props) {
+export default function ArticleContent({ content, files, className, adSettings, showInlineAd, inArticleAdCode, title, subject, category, sectionName, requireLoginForDownload }: Props) {
   const { isAuthenticated } = useAuthStore();
   const pathname = usePathname();
   const frontSettings = useFrontSettings();
@@ -71,7 +73,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
 
   const processedContent = sanitizeRichHtml(content, trustedIframeOrigins);
   const paragraphMatches = Array.from(processedContent.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi));
-  const secondParagraph = paragraphMatches[1];
+  const secondParagraph = paragraphMatches[1] ?? paragraphMatches[0];
   const splitIndex = secondParagraph ? secondParagraph.index! + secondParagraph[0].length : -1;
   const contentBeforeAd = splitIndex > 0 ? processedContent.slice(0, splitIndex) : processedContent;
   const contentAfterAd = splitIndex > 0 ? processedContent.slice(splitIndex) : '';
@@ -120,9 +122,13 @@ export default function ArticleContent({ content, files, className, adSettings, 
 
       <div className="rich-content prose mb-10 max-w-none text-right text-base leading-8 text-slate-700 prose-headings:scroll-mt-28 prose-headings:text-right prose-headings:font-black prose-headings:text-slate-950 prose-p:leading-8 prose-a:font-bold prose-a:text-blue-700 prose-img:mx-auto prose-img:rounded-2xl prose-img:shadow-sm sm:text-[17px]">
         <div dangerouslySetInnerHTML={{ __html: contentBeforeAd }} />
-        {showInlineAd && adSettings && splitIndex > 0 ? (
+        {showInlineAd && splitIndex > 0 ? (
           <div className="not-prose my-8">
-            <ArticleAds adSettings={adSettings} position="content-mid" />
+            {inArticleAdCode ? (
+              <InArticleAd code={inArticleAdCode} />
+            ) : adSettings ? (
+              <ArticleAds adSettings={adSettings} position="content-mid" />
+            ) : null}
           </div>
         ) : null}
         {contentAfterAd ? <div dangerouslySetInnerHTML={{ __html: contentAfterAd }} /> : null}

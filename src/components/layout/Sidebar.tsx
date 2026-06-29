@@ -26,7 +26,12 @@ import {
   FolderOpen,
   MessageSquare,
   Database,
-  Bot
+  Bot,
+  ClipboardList,
+  FileSpreadsheet,
+  BriefcaseBusiness,
+  Library,
+  Wand2
 } from 'lucide-react';
 
 interface MenuItem {
@@ -118,6 +123,7 @@ export default function Sidebar({ initialSettings }: SidebarProps) {
       // Permission aliases for backward compatibility
       const permissionAliases: Record<string, string[]> = {
         'manage users': ['users.view', 'admin users'],
+        'manage teacher subscriptions': ['manage users', 'manage roles', 'manage settings', 'admin users'],
       };
 
       // Check direct permission
@@ -145,6 +151,40 @@ export default function Sidebar({ initialSettings }: SidebarProps) {
         title: 'لوحة التحكم',
         icon: LayoutDashboard,
         href: '/dashboard',
+      },
+      {
+        title: 'اشتراكات المعلمين',
+        icon: ClipboardList,
+        permission: 'manage teacher subscriptions',
+        children: [
+          { title: 'لوحة إدارة الاشتراكات', href: '/dashboard/teacher-subscriptions', permission: 'manage teacher subscriptions' },
+          { title: 'طلبات الاشتراك', href: '/dashboard/teacher-subscriptions/orders', permission: 'manage teacher subscriptions' },
+          { title: 'خزنة ملفات Premium', href: '/dashboard/teacher-subscriptions/premium-files', permission: 'manage teacher subscriptions' },
+          { title: 'المعلمون المشتركون', href: '/dashboard/teacher-subscriptions/teachers', permission: 'manage teacher subscriptions' },
+          { title: 'الاشتراكات', href: '/dashboard/teacher-subscriptions/subscriptions', permission: 'manage teacher subscriptions' },
+          { title: 'أجهزة المعلمين', href: '/dashboard/teacher-subscriptions/devices', permission: 'manage teacher subscriptions' },
+          { title: 'تحميلات Premium', href: '/dashboard/teacher-subscriptions/downloads', permission: 'manage teacher subscriptions' },
+          { title: 'عمليات AI', href: '/dashboard/teacher-subscriptions/ai-generations', permission: 'manage teacher subscriptions' },
+          { title: 'التقارير المالية', href: '/dashboard/teacher-subscriptions/reports', permission: 'manage teacher subscriptions' },
+          { title: 'تحليلات الاستخدام', href: '/dashboard/teacher-subscriptions/analytics', permission: 'manage teacher subscriptions' },
+        ],
+      },
+      {
+        title: 'منطقة المعلم',
+        icon: BriefcaseBusiness,
+        permission: 'teacher.subscription.access',
+        children: [
+          { title: 'لوحة المعلم', href: '/dashboard/teacher', permission: 'teacher.subscription.access' },
+          { title: 'ملفات المعلم', href: '/dashboard/teacher/files', permission: 'teacher.files.premium.download' },
+          { title: 'نماذج الامتحانات', href: '/dashboard/teacher/exams', permission: 'teacher.files.premium.download' },
+          { title: 'الخطط وتحليل المحتوى', href: '/dashboard/teacher/plans', permission: 'teacher.files.premium.download' },
+          { title: 'أوراق العمل', href: '/dashboard/teacher/worksheets', permission: 'teacher.files.premium.download' },
+          { title: 'أدوات المعلم الذكية', href: '/dashboard/teacher/ai-tools', permission: 'teacher.ai.exam.generate' },
+          { title: 'مكتبتي', href: '/dashboard/teacher/library', permission: 'teacher.library.access' },
+          { title: 'سجل التحميلات', href: '/dashboard/teacher/downloads', permission: 'teacher.usage.view' },
+          { title: 'اشتراكي', href: '/dashboard/teacher/subscription', permission: 'teacher.subscription.access' },
+          { title: 'إشعاراتي', href: '/dashboard/teacher/notifications', permission: 'teacher.subscription.access' },
+        ],
       },
       {
         title: 'المحتوى',

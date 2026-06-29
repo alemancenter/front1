@@ -39,7 +39,7 @@ import { API_ENDPOINTS } from '@/lib/api/config';
 import { settingsService } from '@/lib/api/services/settings';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
-import { extractSlotId, buildAdSlotValue } from '@/lib/adsense';
+import { extractSlotId, buildAdSlotValue, buildInArticleAdValue, formatAdSnippetForInput } from '@/lib/adsense';
 import { revalidateFrontSettings } from '@/app/actions/revalidate-settings';
 
 // Tabs configuration
@@ -121,6 +121,8 @@ interface SettingsData {
   google_ads_desktop_news_2?: string;
   google_ads_desktop_download?: string;
   google_ads_desktop_download_2?: string;
+  google_ads_in_article_article?: string;
+  google_ads_in_article_post?: string;
   // Mobile
   google_ads_mobile_classes?: string;
   google_ads_mobile_classes_2?: string;
@@ -1156,6 +1158,43 @@ export default function SettingsPage() {
                     onChange={(e) => updateSetting('adsense_client', e.target.value)}
                     placeholder="ca-pub-xxxxxxxxxxxxxxxx"
                     helperText="يُستخدم في جميع الإعلانات تلقائياً"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>إعلانات In-Article داخل الفقرات</CardTitle>
+                  <CardDescription>
+                    الصق كود إعلان In-Article من Google AdSense. سيتم حفظ slot وlayout فقط وتشغيله داخل فقرات المقالة أو المنشور.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 lg:grid-cols-2">
+                  <Textarea
+                    label="كود In-Article للمقالات التعليمية"
+                    value={formatAdSnippetForInput(
+                      settings.google_ads_in_article_article || '',
+                      settings.adsense_client || undefined
+                    )}
+                    onChange={(e) =>
+                      updateSetting('google_ads_in_article_article', buildInArticleAdValue(e.target.value))
+                    }
+                    placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
+                    rows={8}
+                    className="font-mono text-xs"
+                  />
+                  <Textarea
+                    label="كود In-Article للمنشورات والأخبار"
+                    value={formatAdSnippetForInput(
+                      settings.google_ads_in_article_post || '',
+                      settings.adsense_client || undefined
+                    )}
+                    onChange={(e) =>
+                      updateSetting('google_ads_in_article_post', buildInArticleAdValue(e.target.value))
+                    }
+                    placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
+                    rows={8}
+                    className="font-mono text-xs"
                   />
                 </CardContent>
               </Card>
