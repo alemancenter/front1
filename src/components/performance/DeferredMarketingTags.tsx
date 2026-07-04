@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getStoredConsent, type ConsentState } from '@/lib/cookie-consent';
+import { hasAdvertisementConsent } from '@/lib/cookie-consent';
 import { loadScriptOnce, runAfterIdle } from '@/lib/performance/loadThirdParties';
 
 type DeferredMarketingTagsProps = {
   enabled: boolean;
   adsenseClient?: string;
 };
-
-const hasConsent = (category: 'advertisement', state: ConsentState | null) =>
-  Boolean(state?.categories?.includes(category));
 
 export default function DeferredMarketingTags({ enabled, adsenseClient }: DeferredMarketingTagsProps) {
   useEffect(() => {
@@ -27,30 +24,26 @@ export default function DeferredMarketingTags({ enabled, adsenseClient }: Deferr
       );
     };
 
-    const loadAllowedTags = (state: ConsentState | null) => {
-      if (hasConsent('advertisement', state)) {
+    const loadIfAllowed = () => {
+      // Default-allow model: ads load unless the visitor explicitly opted
+      // out via the cookie banner. See hasAdvertisementConsent() for why.
+      if (hasAdvertisementConsent()) {
         loadAdsense();
       }
     };
 
-    const stored = getStoredConsent();
-    if (stored) {
-      runAfterIdle(() => loadAllowedTags(stored), 1200);
-      return;
-    }
+    // Fire on first idle moment regardless of whether the banner has been
+    // answered yet — covers the "no decision stored" default-allow case.
+    runAfterIdle(loadIfAllowed, 1200);
 
-    const onConsentUpdate = () => {
-      loadAllowedTags(getStoredConsent());
-      cleanup();
-    };
-
-    const cleanup = () => {
-      window.removeEventListener('ckyConsentUpdate', onConsentUpdate);
-    };
-
+    // Also re-check when the banner fires an update (covers the case where
+    // the visitor initially rejected, then later accepted via settings).
+    const onConsentUpdate = () => loadIfAllowed();
     window.addEventListener('ckyConsentUpdate', onConsentUpdate);
 
-    return cleanup;
+    return () => {
+      window.removeEventListener('ckyConsentUpdate', onConsentUpdate);
+    };
   }, [adsenseClient, enabled]);
 
   return null;

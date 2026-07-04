@@ -28,6 +28,25 @@ export function getStoredConsent(): ConsentState | null {
   }
 }
 
+/**
+ * AdSense/Google only *require* explicit opt-in consent before serving ads for
+ * visitors in the EEA/UK/Switzerland (GDPR + PECR). Outside those regions, ads
+ * (non-personalized at minimum) may be served by default; the cookie banner
+ * still lets the visitor opt out at any time, which we always honor.
+ *
+ * This site's audience is entirely non-GDPR (Jordan/Saudi/Egypt/Palestine —
+ * see country routing in /jo,/sa,/eg,/ps), so gating 100% of ad requests
+ * behind an explicit "Accept" click was losing nearly all ad revenue for no
+ * legal reason. We now default advertisement consent to GRANTED until the
+ * visitor explicitly rejects it, instead of defaulting to DENIED until they
+ * explicitly accept.
+ */
+export function hasAdvertisementConsent(): boolean {
+  const stored = getStoredConsent();
+  if (!stored) return true; // no decision yet → serve ads by default (opt-out model)
+  return stored.categories.includes('advertisement');
+}
+
 function storeConsent(state: ConsentState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));

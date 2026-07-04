@@ -38,6 +38,7 @@ import Badge from '@/components/ui/Badge';
 import PostSeoContentBlock from './PostSeoContentBlock';
 import ResponsiveAd from '@/components/ads/ResponsiveAd';
 import InArticleAd from '@/components/ads/InArticleAd';
+import { findContentSplitIndex } from '@/lib/adsense';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
 import { sanitizeRichHtml } from '@/lib/sanitize-html';
 import { shouldShowAds, getAdLimit } from '@/lib/ads-policy';
@@ -230,9 +231,7 @@ export default function PostView({ post, countryCode, currentUrl, adSettings }: 
   }, [post.content]);
 
   const contentAdSlot = useMemo(() => {
-    const paragraphMatches = Array.from(contentWithIds.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi));
-    const anchor = paragraphMatches[1] ?? paragraphMatches[0];
-    const splitIndex = anchor ? anchor.index! + anchor[0].length : -1;
+    const splitIndex = findContentSplitIndex(contentWithIds);
     return {
       before: splitIndex > 0 ? contentWithIds.slice(0, splitIndex) : contentWithIds,
       after: splitIndex > 0 ? contentWithIds.slice(splitIndex) : '',

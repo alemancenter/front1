@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ArticleAds from '@/components/ads/ArticleAds';
 import InArticleAd from '@/components/ads/InArticleAd';
+import { findContentSplitIndex } from '@/lib/adsense';
 import { sanitizeRichHtml } from '@/lib/sanitize-html';
 import { useAuthStore } from '@/store/useStore';
 import { useFrontSettings } from '@/components/front-settings/FrontSettingsProvider';
@@ -72,9 +73,7 @@ export default function ArticleContent({ content, files, className, adSettings, 
   ];
 
   const processedContent = sanitizeRichHtml(content, trustedIframeOrigins);
-  const paragraphMatches = Array.from(processedContent.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi));
-  const secondParagraph = paragraphMatches[1] ?? paragraphMatches[0];
-  const splitIndex = secondParagraph ? secondParagraph.index! + secondParagraph[0].length : -1;
+  const splitIndex = findContentSplitIndex(processedContent);
   const contentBeforeAd = splitIndex > 0 ? processedContent.slice(0, splitIndex) : processedContent;
   const contentAfterAd = splitIndex > 0 ? processedContent.slice(splitIndex) : '';
 

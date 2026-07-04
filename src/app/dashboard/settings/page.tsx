@@ -363,6 +363,26 @@ export default function SettingsPage() {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  // buildInArticleAdValue() silently returns '' when it can't find a
+  // data-ad-slot in the pasted snippet — previously the textarea would just
+  // go blank with no explanation, so admins thought they'd saved an ad code
+  // when nothing was actually stored. Track a per-field warning instead.
+  const [adCodeWarnings, setAdCodeWarnings] = useState<Record<string, string>>({});
+
+  const updateInArticleSetting = (key: string, rawPaste: string) => {
+    const built = buildInArticleAdValue(rawPaste);
+    updateSetting(key, built);
+    setAdCodeWarnings((prev) => {
+      const next = { ...prev };
+      if (rawPaste.trim() && !built) {
+        next[key] = 'تعذّر استخراج رقم الإعلان (ad slot) من الكود الملصوق. تأكد من نسخ كود In-Article كاملاً كما هو من AdSense (يجب أن يحتوي على data-ad-slot).';
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+  };
+
   const extractDomain = (url: string): string => {
     try {
       const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -1170,32 +1190,48 @@ export default function SettingsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 lg:grid-cols-2">
-                  <Textarea
-                    label="كود In-Article للمقالات التعليمية"
-                    value={formatAdSnippetForInput(
-                      settings.google_ads_in_article_article || '',
-                      settings.adsense_client || undefined
+                  <div>
+                    <Textarea
+                      label="كود In-Article للمقالات التعليمية"
+                      value={formatAdSnippetForInput(
+                        settings.google_ads_in_article_article || '',
+                        settings.adsense_client || undefined
+                      )}
+                      onChange={(e) =>
+                        updateInArticleSetting('google_ads_in_article_article', e.target.value)
+                      }
+                      placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
+                      rows={8}
+                      className="font-mono text-xs"
+                    />
+                    {adCodeWarnings.google_ads_in_article_article && (
+                      <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-red-600">
+                        <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {adCodeWarnings.google_ads_in_article_article}
+                      </p>
                     )}
-                    onChange={(e) =>
-                      updateSetting('google_ads_in_article_article', buildInArticleAdValue(e.target.value))
-                    }
-                    placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
-                    rows={8}
-                    className="font-mono text-xs"
-                  />
-                  <Textarea
-                    label="كود In-Article للمنشورات والأخبار"
-                    value={formatAdSnippetForInput(
-                      settings.google_ads_in_article_post || '',
-                      settings.adsense_client || undefined
+                  </div>
+                  <div>
+                    <Textarea
+                      label="كود In-Article للمنشورات والأخبار"
+                      value={formatAdSnippetForInput(
+                        settings.google_ads_in_article_post || '',
+                        settings.adsense_client || undefined
+                      )}
+                      onChange={(e) =>
+                        updateInArticleSetting('google_ads_in_article_post', e.target.value)
+                      }
+                      placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
+                      rows={8}
+                      className="font-mono text-xs"
+                    />
+                    {adCodeWarnings.google_ads_in_article_post && (
+                      <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-red-600">
+                        <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {adCodeWarnings.google_ads_in_article_post}
+                      </p>
                     )}
-                    onChange={(e) =>
-                      updateSetting('google_ads_in_article_post', buildInArticleAdValue(e.target.value))
-                    }
-                    placeholder={`<ins class="adsbygoogle"\n     data-ad-layout="in-article"\n     data-ad-format="fluid"\n     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"\n     data-ad-slot="1234567890"></ins>`}
-                    rows={8}
-                    className="font-mono text-xs"
-                  />
+                  </div>
                 </CardContent>
               </Card>
 

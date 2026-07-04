@@ -3,14 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { AdSlotConfig } from '@/lib/adsense';
 import { initializeAdSlots } from '@/lib/adsense';
-
-function hasCkyConsent(category: string): boolean {
-  const win = window as Window & {
-    getCkyConsent?: () => { categories?: { accepted?: string[] } };
-  };
-  if (typeof win.getCkyConsent !== 'function') return false;
-  return win.getCkyConsent()?.categories?.accepted?.includes(category) ?? false;
-}
+import { hasAdvertisementConsent } from '@/lib/cookie-consent';
 
 interface AdUnitProps {
   config: AdSlotConfig;
@@ -27,7 +20,7 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
     if (!container) return;
 
     const tryInit = () => {
-      if (!hasCkyConsent('advertisement')) return;
+      if (!hasAdvertisementConsent()) return;
       if (cleanupRef.current) return; // already initialized
       cleanupRef.current = initializeAdSlots(container) ?? null;
     };

@@ -134,11 +134,18 @@ export function evaluateAdsenseReadiness(input: AdsenseReadinessInput): AdsenseR
     input.isPublished !== false &&
     !input.hasPolicyRisk;
 
+  // NOTE: this was previously score>=78 / uniqueCharCount>=600 /
+  // uniqueWordCount>=250 / fillerRatio<=0.4 — a bar most of this site's short
+  // "download resource" pages could never clear, which silently suppressed
+  // In-Article/Display ads sitewide even when an ad code was configured.
+  // Thresholds below still block genuinely thin/templated pages (protecting
+  // the AdSense account from a "low value content" policy strike) while
+  // letting normal resource pages qualify.
   const shouldShowAds =
-    score >= 78 &&
-    uniqueCharCount >= 600 &&
-    uniqueWordCount >= 250 &&
-    fillerRatio <= 0.4 &&
+    score >= 55 &&
+    uniqueCharCount >= 350 &&
+    uniqueWordCount >= 140 &&
+    fillerRatio <= 0.55 &&
     input.isPublished !== false &&
     !input.hasPolicyRisk;
 

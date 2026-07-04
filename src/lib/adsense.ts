@@ -88,6 +88,38 @@ export function extractSlotId(raw: string): string {
   return parseAdSlotConfig(raw)?.ad_slot ?? '';
 }
 
+const BLOCK_CLOSE_TAG_PATTERN = /<\/(p|div|h[1-6]|ul|ol|table|blockquote|figure|section)>/gi;
+
+/**
+ * Find a safe offset inside a content HTML string to insert an in-article ad
+ * (roughly after the 2nd paragraph).
+ *
+ * Falls back through three tiers so a configured ad code is never silently
+ * dropped just because the split heuristic didn't match:
+ *  1. After the 2nd (or 1st) <p> tag — the common case.
+ *  2. After the 2nd (or 1st) closing block-level tag (</div>, </h2>, </ul>...)
+ *     — covers editors/imported HTML that don't wrap text in <p>.
+ *  3. End of the content — still shows the ad (after all the text) rather
+ *     than never rendering it at all.
+ */
+export function findContentSplitIndex(html: string): number {
+  if (!html) return -1;
+
+  const paragraphMatches = Array.from(html.matchAll(/<p\b[^>]*>[\s\S]*?<\/p>/gi));
+  const secondParagraph = paragraphMatches[1] ?? paragraphMatches[0];
+  if (secondParagraph) {
+    return secondParagraph.index! + secondParagraph[0].length;
+  }
+
+  const blockMatches = Array.from(html.matchAll(BLOCK_CLOSE_TAG_PATTERN));
+  const secondBlock = blockMatches[1] ?? blockMatches[0];
+  if (secondBlock) {
+    return secondBlock.index! + secondBlock[0].length;
+  }
+
+  return html.length > 0 ? html.length : -1;
+}
+
 /** Show saved structured config as a pasteable AdSense-like snippet in dashboard textareas. */
 export function formatAdSnippetForInput(raw: string, adClient = 'ca-pub-xxxxxxxxxxxxxxxx'): string {
   const config = parseAdSlotConfig(raw);

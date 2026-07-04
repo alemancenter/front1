@@ -23,13 +23,19 @@ export interface AdPageContext {
  * - Auth / dashboard / error pages (no editorial content)
  * - Unapproved or restricted content
  * - Empty search results
- * - Pages with fewer than 600 characters of body text
+ * - Pages with fewer than 350 characters of body text
+ *
+ * NOTE: previously required 600 chars, which — combined with the equally
+ * strict evaluateAdsenseReadiness() gate — blocked ads on most of this
+ * site's short "download resource" pages (real traffic, zero ad requests).
+ * 350 chars still filters out genuinely empty/stub pages while letting
+ * normal resource pages qualify.
  */
 export function shouldShowAds(ctx: AdPageContext): boolean {
   if (ctx.isAuthPage || ctx.isDashboard || ctx.isErrorPage || ctx.hasPolicyRisk) return false;
   if (ctx.hasApprovedContent === false) return false;
   if (ctx.isSearchEmpty) return false;
-  if ((ctx.contentLength ?? Infinity) < 600) return false;
+  if ((ctx.contentLength ?? Infinity) < 350) return false;
   return true;
 }
 
@@ -40,14 +46,14 @@ export function shouldShowAds(ctx: AdPageContext): boolean {
  *
  * | Content length | Ad limit |
  * |----------------|----------|
- * | < 600 chars    | 0        |
- * | 600–1 499      | 1        |
- * | 1 500–2 999    | 2        |
- * | ≥ 3 000        | 3 (max)  |
+ * | < 350 chars    | 0        |
+ * | 350–1 199      | 1        |
+ * | 1 200–2 499    | 2        |
+ * | ≥ 2 500        | 3 (max)  |
  */
 export function getAdLimit(contentLength: number): 0 | 1 | 2 | 3 {
-  if (contentLength < 600) return 0;
-  if (contentLength < 1500) return 1;
-  if (contentLength < 3000) return 2;
+  if (contentLength < 350) return 0;
+  if (contentLength < 1200) return 1;
+  if (contentLength < 2500) return 2;
   return 3;
 }
