@@ -298,6 +298,7 @@ let privacyOptionsApplied = false;
  * throw when every <ins> on the page has already been processed.
  */
 export function enableRestrictedDataProcessing(adClient: string): void {
+  if (process.env.NEXT_PUBLIC_ADSENSE_FORCE_NPA !== 'true') return;
   if (privacyOptionsApplied) return;
   const client = (adClient || '').trim();
   if (!client) return;

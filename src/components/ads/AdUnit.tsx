@@ -67,7 +67,9 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
           data-matched-content-ui-type={config.matched_content_ui_type || undefined}
           data-matched-content-rows-num={config.matched_content_rows_num || undefined}
           data-matched-content-columns-num={config.matched_content_columns_num || undefined}
-          data-restrict-data-processing="1"
+          data-restrict-data-processing={
+            process.env.NEXT_PUBLIC_ADSENSE_FORCE_NPA === 'true' ? '1' : undefined
+          }
           data-full-width-responsive={String(config.responsive)}
         />
       ) : null}
