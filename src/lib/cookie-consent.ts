@@ -84,10 +84,14 @@ export function isGoogleCertifiedCmpRequiredRegion(): boolean {
  * explicitly accept.
  */
 export function hasAdvertisementConsent(): boolean {
-  if (isGoogleCertifiedCmpRequiredRegion()) return false;
   const stored = getStoredConsent();
   if (!stored) return false;
   return stored.categories.includes('advertisement');
+}
+
+export function canLoadAdsense(): boolean {
+  if (isGoogleCertifiedCmpRequiredRegion()) return true;
+  return hasAdvertisementConsent();
 }
 
 function storeConsent(state: ConsentState): void {

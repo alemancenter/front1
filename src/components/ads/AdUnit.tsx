@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AdSlotConfig } from '@/lib/adsense';
 import { initializeAdSlots, enableRestrictedDataProcessing } from '@/lib/adsense';
-import { hasAdvertisementConsent } from '@/lib/cookie-consent';
+import { canLoadAdsense } from '@/lib/cookie-consent';
 
 interface AdUnitProps {
   config: AdSlotConfig;
@@ -18,7 +18,7 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
 
   useEffect(() => {
     const syncAllowed = () => {
-      const allowed = hasAdvertisementConsent();
+      const allowed = canLoadAdsense();
       setCanRequestAds(allowed);
       return allowed;
     };

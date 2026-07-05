@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { hasAdvertisementConsent } from '@/lib/cookie-consent';
+import { canLoadAdsense } from '@/lib/cookie-consent';
 import { enableRestrictedDataProcessing } from '@/lib/adsense';
 import { loadScriptOnce, runAfterIdle } from '@/lib/performance/loadThirdParties';
 
@@ -37,7 +37,7 @@ export default function DeferredMarketingTags({ enabled, adsenseClient }: Deferr
     const loadIfAllowed = () => {
       // Default-allow model: ads load unless the visitor explicitly opted
       // out via the cookie banner. See hasAdvertisementConsent() for why.
-      if (hasAdvertisementConsent()) {
+      if (canLoadAdsense()) {
         loadAdsense();
       }
     };
