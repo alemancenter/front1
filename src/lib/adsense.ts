@@ -8,14 +8,33 @@ export interface AdSlotConfig {
   responsive: boolean;
   ad_layout?: string;
   ad_layout_key?: string;
-  ad_type?: 'display' | 'in_article';
+  ad_type?: 'display' | 'in_article' | 'multiplex';
+  matched_content_ui_type?: string;
+  matched_content_rows_num?: string;
+  matched_content_columns_num?: string;
 }
 
-const AD_ALLOWED_KEYS = new Set(['ad_slot', 'format', 'responsive', 'ad_layout', 'ad_layout_key', 'ad_type']);
+const AD_ALLOWED_KEYS = new Set([
+  'ad_slot',
+  'format',
+  'responsive',
+  'ad_layout',
+  'ad_layout_key',
+  'ad_type',
+  'matched_content_ui_type',
+  'matched_content_rows_num',
+  'matched_content_columns_num',
+]);
 
 const attrValue = (source: string, attr: string): string => {
   const match = source.match(new RegExp(`${attr}=["']([^"']+)["']`, 'i'));
   return match?.[1]?.trim() ?? '';
+};
+
+const inferAdType = (format: string, layout?: string, explicit?: unknown): AdSlotConfig['ad_type'] => {
+  if (explicit === 'multiplex' || format === 'autorelaxed') return 'multiplex';
+  if (explicit === 'in_article' || layout === 'in-article') return 'in_article';
+  return 'display';
 };
 
 /**
@@ -34,18 +53,35 @@ export function parseAdSlotConfig(raw: string): AdSlotConfig | null {
     }
     const slot = typeof parsed.ad_slot === 'string' ? parsed.ad_slot.trim() : '';
     if (!slot) return null;
+    const format = typeof parsed.format === 'string' ? parsed.format.trim() : 'auto';
+    const adLayout = typeof parsed.ad_layout === 'string' ? parsed.ad_layout.trim() : undefined;
     return {
       ad_slot: slot,
-      format: typeof parsed.format === 'string' ? parsed.format : 'auto',
+      format,
       responsive: typeof parsed.responsive === 'boolean' ? parsed.responsive : true,
-      ad_layout: typeof parsed.ad_layout === 'string' ? parsed.ad_layout : undefined,
-      ad_layout_key: typeof parsed.ad_layout_key === 'string' ? parsed.ad_layout_key : undefined,
-      ad_type: parsed.ad_type === 'in_article' ? 'in_article' : 'display',
+      ad_layout: adLayout,
+      ad_layout_key: typeof parsed.ad_layout_key === 'string' ? parsed.ad_layout_key.trim() : undefined,
+      ad_type: inferAdType(format, adLayout, parsed.ad_type),
+      matched_content_ui_type:
+        typeof parsed.matched_content_ui_type === 'string' ? parsed.matched_content_ui_type.trim() : undefined,
+      matched_content_rows_num:
+        typeof parsed.matched_content_rows_num === 'string' ? parsed.matched_content_rows_num.trim() : undefined,
+      matched_content_columns_num:
+        typeof parsed.matched_content_columns_num === 'string' ? parsed.matched_content_columns_num.trim() : undefined,
     };
   } catch {
     return null;
   }
 }
+
+const compactAdConfig = (config: AdSlotConfig): AdSlotConfig => ({
+  ...config,
+  ad_layout: config.ad_layout || undefined,
+  ad_layout_key: config.ad_layout_key || undefined,
+  matched_content_ui_type: config.matched_content_ui_type || undefined,
+  matched_content_rows_num: config.matched_content_rows_num || undefined,
+  matched_content_columns_num: config.matched_content_columns_num || undefined,
+});
 
 /**
  * Serialize a slot ID into the stored JSON format. Returns '' for empty input.
@@ -68,14 +104,23 @@ export function buildAdSlotValue(slotId: string): string {
   const raw = (slotId || '').trim();
   if (!raw) return '';
 
+  const existing = parseAdSlotConfig(raw);
+  if (existing) return JSON.stringify(compactAdConfig(existing));
+
   const pastedSlot = attrValue(raw, 'data-ad-slot');
   if (pastedSlot) {
+    const format = attrValue(raw, 'data-ad-format') || 'auto';
+    const adLayout = attrValue(raw, 'data-ad-layout') || undefined;
     return JSON.stringify({
       ad_slot: pastedSlot,
-      format: attrValue(raw, 'data-ad-format') || 'auto',
+      format,
       responsive: attrValue(raw, 'data-full-width-responsive') !== 'false',
-      ad_layout: attrValue(raw, 'data-ad-layout') || undefined,
+      ad_layout: adLayout,
       ad_layout_key: attrValue(raw, 'data-ad-layout-key') || undefined,
+      ad_type: inferAdType(format, adLayout),
+      matched_content_ui_type: attrValue(raw, 'data-matched-content-ui-type') || undefined,
+      matched_content_rows_num: attrValue(raw, 'data-matched-content-rows-num') || undefined,
+      matched_content_columns_num: attrValue(raw, 'data-matched-content-columns-num') || undefined,
     });
   }
 
@@ -157,11 +202,21 @@ export function formatAdSnippetForInput(raw: string, adClient = 'ca-pub-xxxxxxxx
 
   const layout = config.ad_layout ? `\n     data-ad-layout="${config.ad_layout}"` : '';
   const layoutKey = config.ad_layout_key ? `\n     data-ad-layout-key="${config.ad_layout_key}"` : '';
+  const matchedUi = config.matched_content_ui_type
+    ? `\n     data-matched-content-ui-type="${config.matched_content_ui_type}"`
+    : '';
+  const matchedRows = config.matched_content_rows_num
+    ? `\n     data-matched-content-rows-num="${config.matched_content_rows_num}"`
+    : '';
+  const matchedColumns = config.matched_content_columns_num
+    ? `\n     data-matched-content-columns-num="${config.matched_content_columns_num}"`
+    : '';
+  const format = config.format || (config.ad_type === 'in_article' ? 'fluid' : 'auto');
   return `<ins class="adsbygoogle"
      style="display:block; text-align:center;"
      data-ad-client="${adClient}"
      data-ad-slot="${config.ad_slot}"${layout}
-     data-ad-format="${config.format || 'fluid'}"${layoutKey}
+     data-ad-format="${format}"${layoutKey}${matchedUi}${matchedRows}${matchedColumns}
      data-full-width-responsive="${String(config.responsive)}"></ins>`;
 }
 

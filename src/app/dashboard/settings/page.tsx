@@ -39,7 +39,7 @@ import { API_ENDPOINTS } from '@/lib/api/config';
 import { settingsService } from '@/lib/api/services/settings';
 import { usePermissionGuard } from '@/hooks/usePermissionGuard';
 import AccessDenied from '@/components/common/AccessDenied';
-import { extractSlotId, buildAdSlotValue, buildInArticleAdValue, formatAdSnippetForInput } from '@/lib/adsense';
+import { buildAdSlotValue, buildInArticleAdValue, formatAdSnippetForInput, parseAdSlotConfig } from '@/lib/adsense';
 import { revalidateFrontSettings } from '@/app/actions/revalidate-settings';
 
 // Tabs configuration
@@ -383,6 +383,20 @@ export default function SettingsPage() {
     });
   };
 
+  const updateAdSlotSetting = (key: string, rawPaste: string) => {
+    const built = buildAdSlotValue(rawPaste);
+    updateSetting(key, built);
+    setAdCodeWarnings((prev) => {
+      const next = { ...prev };
+      if (rawPaste.trim() && !built) {
+        next[key] = 'تعذّر استخراج رقم الإعلان (ad slot) من القيمة المدخلة. أدخل رقم Ad Slot فقط أو الصق كود <ins> الكامل من AdSense.';
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+  };
+
   const extractDomain = (url: string): string => {
     try {
       const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -412,6 +426,41 @@ export default function SettingsPage() {
       setCopiedField(fieldId);
       setTimeout(() => setCopiedField(null), 2000);
     });
+  };
+
+  const renderAdSlotTextarea = (key: string, label: string) => {
+    const rawValue = (settings[key as keyof typeof settings] as string) || '';
+    const savedConfig = parseAdSlotConfig(rawValue);
+    const formatLabel =
+      savedConfig?.ad_type === 'multiplex' || savedConfig?.format === 'autorelaxed'
+        ? 'Multiplex / autorelaxed'
+        : savedConfig?.ad_type === 'in_article'
+          ? 'In-Article / fluid'
+          : savedConfig?.format && savedConfig.format !== 'auto'
+            ? savedConfig.format
+            : 'Display / auto';
+
+    return (
+      <div key={key}>
+        <Textarea
+          label={label}
+          value={formatAdSnippetForInput(rawValue, settings.adsense_client || undefined)}
+          onChange={(e) => updateAdSlotSetting(key, e.target.value)}
+          placeholder={`1234567890\n\nأو الصق كود Display / Multiplex الكامل من AdSense هنا`}
+          rows={7}
+          className="font-mono text-xs"
+        />
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          {savedConfig ? `الصيغة المحفوظة: ${formatLabel}` : 'يدعم Display وMultiplex. لحفظ Multiplex الصق الكود الكامل حتى تبقى data-ad-format="autorelaxed" وسمات data-matched-content إن وجدت.'}
+        </p>
+        {adCodeWarnings[key] && (
+          <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-red-600">
+            <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {adCodeWarnings[key]}
+          </p>
+        )}
+      </div>
+    );
   };
 
   // Load settings only after permission is confirmed — prevents 403 from users
@@ -1168,7 +1217,7 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle>إعدادات Google AdSense</CardTitle>
                   <CardDescription>
-                    أدخل معرف الحساب ورقم الإعلان فقط — الكود يُولَّد تلقائياً
+                    أدخل معرف الحساب، ثم الصق أكواد Display أو Multiplex أو In-Article في الحقول المناسبة.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1240,9 +1289,8 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle>إعلانات سطح المكتب</CardTitle>
                   <CardDescription>
-                    أدخل رقم Ad Slot فقط (مثال: 1234567890). لو الوحدة من نوع خاص (Multiplex/In-feed) الصق كود
-                    الإعلان الكامل من AdSense هنا مباشرةً بدل الرقم فقط، حتى يُحفظ الشكل الصحيح (autorelaxed
-                    مثلاً) ولا يظهر فارغاً.
+                    أدخل رقم Ad Slot فقط لإعلان Display عادي، أو الصق كود Multiplex الكامل حتى تُحفظ صيغة
+                    autorelaxed وسمات data-matched-content كما هي.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1260,18 +1308,7 @@ export default function SettingsPage() {
                       { key: 'google_ads_desktop_news_2',     label: 'الأخبار (2)' },
                       { key: 'google_ads_desktop_download',   label: 'التحميل (1)' },
                       { key: 'google_ads_desktop_download_2', label: 'التحميل (2)' },
-                    ].map(({ key, label }) => (
-                      <Input name="field-app-dashboard-settings-page-51038-33"
-                        key={key}
-                        label={label}
-                        value={extractSlotId(settings[key as keyof typeof settings] as string || '')}
-                        onChange={(e) =>
-                          updateSetting(key, buildAdSlotValue(e.target.value))
-                        }
-                        placeholder="1234567890"
-                        inputMode="numeric"
-                      />
-                    ))}
+                    ].map(({ key, label }) => renderAdSlotTextarea(key, label))}
                   </div>
                 </CardContent>
               </Card>
@@ -1281,9 +1318,8 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle>إعلانات الجوال</CardTitle>
                   <CardDescription>
-                    أدخل رقم Ad Slot فقط (مثال: 1234567890). لو الوحدة من نوع خاص (Multiplex/In-feed) الصق كود
-                    الإعلان الكامل من AdSense هنا مباشرةً بدل الرقم فقط، حتى يُحفظ الشكل الصحيح (autorelaxed
-                    مثلاً) ولا يظهر فارغاً.
+                    أدخل رقم Ad Slot فقط لإعلان Display عادي، أو الصق كود Multiplex الكامل حتى تُحفظ صيغة
+                    autorelaxed وسمات data-matched-content كما هي.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1301,18 +1337,7 @@ export default function SettingsPage() {
                       { key: 'google_ads_mobile_news_2',     label: 'الأخبار (2)' },
                       { key: 'google_ads_mobile_download',   label: 'التحميل (1)' },
                       { key: 'google_ads_mobile_download_2', label: 'التحميل (2)' },
-                    ].map(({ key, label }) => (
-                      <Input name="field-app-dashboard-settings-page-53085-34"
-                        key={key}
-                        label={label}
-                        value={extractSlotId(settings[key as keyof typeof settings] as string || '')}
-                        onChange={(e) =>
-                          updateSetting(key, buildAdSlotValue(e.target.value))
-                        }
-                        placeholder="1234567890"
-                        inputMode="numeric"
-                      />
-                    ))}
+                    ].map(({ key, label }) => renderAdSlotTextarea(key, label))}
                   </div>
                 </CardContent>
               </Card>

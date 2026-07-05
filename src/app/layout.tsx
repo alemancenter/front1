@@ -126,6 +126,10 @@ export default async function RootLayout({
     (process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || '').toString().trim() ||
     (process.env.NEXT_PUBLIC_GA_ID || '').toString().trim();
   const normalizedAdsenseClient = resolveAdsenseClient(settings);
+  const publicSettings = {
+    ...settings,
+    ...(normalizedAdsenseClient ? { adsense_client: normalizedAdsenseClient } : {}),
+  };
   const marketingFlag = process.env.NEXT_PUBLIC_ENABLE_MARKETING_TAGS;
   const marketingEnabled =
     marketingFlag === 'true' ||
@@ -200,7 +204,7 @@ export default async function RootLayout({
         )}
       </head>
       <body className="antialiased min-h-screen">
-        <FrontSettingsProvider settings={settings}>
+        <FrontSettingsProvider settings={publicSettings}>
           <StoreHydration />
           <DeferredMarketingTags
             enabled={marketingEnabled}

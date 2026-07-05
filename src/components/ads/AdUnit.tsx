@@ -51,12 +51,15 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
     <div ref={containerRef} className={`ad-unit ${className}`}>
       <ins
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', textAlign: config.ad_type === 'in_article' ? 'center' : undefined }}
         data-ad-client={adClient}
         data-ad-slot={config.ad_slot}
         data-ad-format={config.format}
         data-ad-layout={config.ad_layout || undefined}
         data-ad-layout-key={config.ad_layout_key || undefined}
+        data-matched-content-ui-type={config.matched_content_ui_type || undefined}
+        data-matched-content-rows-num={config.matched_content_rows_num || undefined}
+        data-matched-content-columns-num={config.matched_content_columns_num || undefined}
         data-full-width-responsive={String(config.responsive)}
       />
     </div>
