@@ -43,7 +43,7 @@ export function getStoredConsent(): ConsentState | null {
  */
 export function hasAdvertisementConsent(): boolean {
   const stored = getStoredConsent();
-  if (!stored) return true; // no decision yet → serve ads by default (opt-out model)
+  if (!stored) return false;
   return stored.categories.includes('advertisement');
 }
 

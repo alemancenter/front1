@@ -285,43 +285,27 @@ const getAdsQueue = (): { push: (obj: Record<string, unknown>) => void } | null 
   return win.adsbygoogle;
 };
 
-let restrictedDataProcessorSet = false;
+let privacyOptionsApplied = false;
 
 /**
- * Enables AdSense "Restricted Data Processing" (RDP) mode.
+ * Applies AdSense privacy options without calling adsbygoogle.push().
  *
- * Root cause: once ads started being requested (after the consent-gate fix),
- * Google's ad server began rejecting every request from GDPR-flagged (EEA)
- * visitors with HTTP 403 — visible in devtools as
- * `googleads.g.doubleclick.net/pagead/ads?gdpr=1&gdpr_consent=...`. This site
- * has no certified IAB TCF CMP, so the "gdpr_consent" string Google's own
- * script improvises isn't valid, and Google's server refuses the request
- * outright rather than just falling back to non-personalized ads.
+ * This sets requestNonPersonalizedAds=1 so AdSense requests include npa=1.
+ * The separate RDP signal is rendered on each <ins> by AdUnit.
  *
- * RDP is Google's documented mechanism for exactly this case: it tells
- * Google to serve contextual, non-personalized ads under a lighter
- * compliance bar that doesn't require a validated consent string, so the
- * request is accepted (200) instead of rejected (403) — see
- * https://support.google.com/adsense/answer/9007336
- *
- * Must be pushed to the adsbygoogle queue once, before/alongside the
- * per-slot `push({})` calls in initializeAdSlots(). Queuing works even
- * before the real adsbygoogle.js has finished loading (same queue pattern
- * documented by Google), so callers can call this immediately after
- * kicking off the script load.
+ * Do not push this privacy setup into the adsbygoogle queue. Google treats
+ * extra queue pushes as ad requests once adsbygoogle.js is active, which can
+ * throw when every <ins> on the page has already been processed.
  */
 export function enableRestrictedDataProcessing(adClient: string): void {
-  if (restrictedDataProcessorSet) return;
+  if (privacyOptionsApplied) return;
   const client = (adClient || '').trim();
   if (!client) return;
   const queue = getAdsQueue();
   if (!queue) return;
 
-  restrictedDataProcessorSet = true;
-  queue.push({
-    google_ad_client: client,
-    google_restricted_data_processor: true,
-  });
+  privacyOptionsApplied = true;
+  (queue as typeof queue & { requestNonPersonalizedAds?: number }).requestNonPersonalizedAds = 1;
 }
 
 const isSlotInitialized = (slot: HTMLElement): boolean =>
@@ -404,14 +388,21 @@ export function initializeAdSlots(
 
     if (!queue) return attempts >= maxAttempts;
 
-    for (const slot of adSlots) {
-      if (isSlotInitialized(slot) || !isSlotVisible(slot)) continue;
+    const pendingSlots = adSlots.filter((slot) => !isSlotInitialized(slot) && isSlotVisible(slot));
+    if (!pendingSlots.length) return true;
 
+    for (const slot of pendingSlots) {
       try {
+        slot.dataset.adUnitInitializing = '1';
         queue.push({});
         slot.dataset.adUnitInitialized = '1';
-      } catch {
-        // Keep trying until maxAttempts is reached.
+        delete slot.dataset.adUnitInitializing;
+      } catch (error) {
+        delete slot.dataset.adUnitInitializing;
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('already have ads')) {
+          slot.dataset.adUnitInitialized = '1';
+        }
       }
     }
 
