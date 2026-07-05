@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { CheckCircle2, ShieldCheck, Sparkles, FileText, GraduationCap, Wand2 } from 'lucide-react';
 
 const features = [
+  'اختر حتى 3 مواد دراسية ضمن الاشتراك الواحد',
   'نماذج امتحانات حديثة ومتنوعة للفصل الدراسي',
   'خطط فصلية وتحليل محتوى وخطط علاجية',
   'أوراق عمل وملفات Word/PDF قابلة للطباعة',

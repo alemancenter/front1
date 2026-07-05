@@ -99,8 +99,34 @@ export type TeacherPlanDesign = {
     premium_downloads: number;
     ai_generations: number;
     exports: number;
+    subjects?: number;
   };
 };
+
+/** Max subjects a teacher may register for one subscription. Mirrors backend MaxTeacherSubjects. */
+export const TEACHER_MAX_SUBJECTS = 3;
+
+/**
+ * Parses TeacherProfile.subjects (a JSON-encoded array string, e.g.
+ * '["رياضيات","علوم"]') into a plain string array. Falls back to the legacy
+ * single `subject` field for profiles created before multi-subject support.
+ * Prefer TeacherSummary.subjects / TeacherWorkspaceSummary.subjects (already
+ * decoded server-side) when available — use this only when you only have a
+ * raw TeacherProfile object (e.g. admin detail views).
+ */
+export function parseTeacherProfileSubjects(profile?: { subject?: string; subjects?: string } | null): string[] {
+  if (!profile) return [];
+  const raw = (profile.subjects || '').trim();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.filter(Boolean);
+    } catch {
+      // not JSON — fall through to legacy single subject
+    }
+  }
+  return profile.subject ? [profile.subject] : [];
+}
 
 export type TeacherAccess = {
   has_active: boolean;
@@ -117,6 +143,7 @@ export type TeacherAccess = {
 export type TeacherSummary = {
   plan: TeacherPlan;
   subscription?: TeacherSubscription;
+  profile?: TeacherProfile;
   orders: TeacherOrder[];
   devices?: TeacherDevice[];
   usage: {
@@ -127,10 +154,15 @@ export type TeacherSummary = {
   can_create_order: boolean;
   plan_design: TeacherPlanDesign;
   access: TeacherAccess;
+  /** Up to 3 subjects the teacher registered for this subscription. */
+  subjects?: string[];
 };
 
 export type TeacherWorkspaceSummary = {
+  /** @deprecated first entry of `subjects`, kept for backward compatibility. */
   subject: string;
+  /** Up to 3 subjects the teacher registered for this subscription. */
+  subjects?: string[];
   subscription?: TeacherSubscription;
   usage: Record<string, number>;
   limits: Record<string, number>;
@@ -233,7 +265,8 @@ export type TeacherAIGeneratePayload = {
   title: string;
   prompt?: string;
   grade?: string;
-  subject?: string; // ignored by backend; subject is locked to teacher subscription
+  /** Which of the teacher's (up to 3) subscribed subjects this generation is for. */
+  subject?: string;
   semester?: string;
 };
 
@@ -295,7 +328,10 @@ export type TeacherAdminDashboard = {
 export type TeacherProfile = {
   id: number;
   user_id: number;
+  /** @deprecated first subject; see `subjects` (raw JSON-encoded string from the backend). */
   subject: string;
+  /** Raw JSON-encoded array string, e.g. '["رياضيات","علوم"]'. Prefer TeacherSummary.subjects / TeacherWorkspaceSummary.subjects instead of parsing this. */
+  subjects?: string;
   school: string;
   phone: string;
   city: string;
@@ -383,7 +419,10 @@ export type TeacherPremiumFileAdminPayload = {
 };
 
 export type CreateTeacherOrderPayload = {
+  /** @deprecated use `subjects` instead. */
   subject?: string;
+  /** Up to 3 subjects the teacher wants to subscribe for. */
+  subjects?: string[];
   school?: string;
   city?: string;
   phone?: string;

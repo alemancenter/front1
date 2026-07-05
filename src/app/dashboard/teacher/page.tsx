@@ -45,7 +45,10 @@ export default function TeacherDashboardPage() {
     <div className="space-y-6" dir="rtl">
       <div className="rounded-3xl bg-gradient-to-l from-emerald-600 to-teal-600 p-7 text-white shadow-sm">
         <h1 className="text-3xl font-black">منطقة المعلم</h1>
-        <p className="mt-2 text-emerald-50">مادتك في الاشتراك: <strong>{data?.subject || 'غير محددة'}</strong></p>
+        <p className="mt-2 text-emerald-50">
+          موادك في الاشتراك:{' '}
+          <strong>{(data?.subjects && data.subjects.length > 0) ? data.subjects.join('، ') : (data?.subject || 'غير محددة')}</strong>
+        </p>
         <p className="mt-1 text-sm text-emerald-50">ينتهي الاشتراك: <strong>{data?.subscription?.ends_at ? new Date(data.subscription.ends_at).toLocaleDateString('ar') : '-'}</strong></p>
         <p className="mt-1 text-sm text-emerald-50">هنا تصل إلى ملفاتك، امتحاناتك، خططك، مكتبتك، وأدواتك التعليمية.</p>
       </div>

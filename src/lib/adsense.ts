@@ -47,9 +47,39 @@ export function parseAdSlotConfig(raw: string): AdSlotConfig | null {
   }
 }
 
-/** Serialize a slot ID into the stored JSON format. Returns '' for empty input. */
+/**
+ * Serialize a slot ID into the stored JSON format. Returns '' for empty input.
+ *
+ * Root cause fix: this used to accept ONLY a bare numeric slot ID and always
+ * force format:"auto" — but some AdSense ad units require a specific format
+ * (e.g. "autorelaxed" for Multiplex/related-content units, or a custom
+ * ad_layout_key for In-feed units). If an admin pasted a Multiplex unit's slot
+ * number into one of the plain "Desktop/Mobile Ads" fields, the ad would be
+ * requested with format:"auto" instead of "autorelaxed" and Google would
+ * never fill it — no error, just permanently blank, in every country.
+ *
+ * Fix: if the input looks like a full pasted AdSense <ins> snippet (not just
+ * a bare number), extract the real data-ad-format / data-ad-layout /
+ * data-ad-layout-key / data-full-width-responsive attributes and preserve
+ * them, instead of overwriting with hardcoded defaults. Bare numeric IDs
+ * still default to format:"auto", responsive:true as before.
+ */
 export function buildAdSlotValue(slotId: string): string {
-  const id = (slotId || '').trim();
+  const raw = (slotId || '').trim();
+  if (!raw) return '';
+
+  const pastedSlot = attrValue(raw, 'data-ad-slot');
+  if (pastedSlot) {
+    return JSON.stringify({
+      ad_slot: pastedSlot,
+      format: attrValue(raw, 'data-ad-format') || 'auto',
+      responsive: attrValue(raw, 'data-full-width-responsive') !== 'false',
+      ad_layout: attrValue(raw, 'data-ad-layout') || undefined,
+      ad_layout_key: attrValue(raw, 'data-ad-layout-key') || undefined,
+    });
+  }
+
+  const id = /^\d+$/.test(raw) ? raw : '';
   if (!id) return '';
   return JSON.stringify({ ad_slot: id, format: 'auto', responsive: true });
 }
@@ -199,6 +229,45 @@ const getAdsQueue = (): { push: (obj: Record<string, unknown>) => void } | null 
   win.adsbygoogle = win.adsbygoogle || [];
   return win.adsbygoogle;
 };
+
+let restrictedDataProcessorSet = false;
+
+/**
+ * Enables AdSense "Restricted Data Processing" (RDP) mode.
+ *
+ * Root cause: once ads started being requested (after the consent-gate fix),
+ * Google's ad server began rejecting every request from GDPR-flagged (EEA)
+ * visitors with HTTP 403 — visible in devtools as
+ * `googleads.g.doubleclick.net/pagead/ads?gdpr=1&gdpr_consent=...`. This site
+ * has no certified IAB TCF CMP, so the "gdpr_consent" string Google's own
+ * script improvises isn't valid, and Google's server refuses the request
+ * outright rather than just falling back to non-personalized ads.
+ *
+ * RDP is Google's documented mechanism for exactly this case: it tells
+ * Google to serve contextual, non-personalized ads under a lighter
+ * compliance bar that doesn't require a validated consent string, so the
+ * request is accepted (200) instead of rejected (403) — see
+ * https://support.google.com/adsense/answer/9007336
+ *
+ * Must be pushed to the adsbygoogle queue once, before/alongside the
+ * per-slot `push({})` calls in initializeAdSlots(). Queuing works even
+ * before the real adsbygoogle.js has finished loading (same queue pattern
+ * documented by Google), so callers can call this immediately after
+ * kicking off the script load.
+ */
+export function enableRestrictedDataProcessing(adClient: string): void {
+  if (restrictedDataProcessorSet) return;
+  const client = (adClient || '').trim();
+  if (!client) return;
+  const queue = getAdsQueue();
+  if (!queue) return;
+
+  restrictedDataProcessorSet = true;
+  queue.push({
+    google_ad_client: client,
+    google_restricted_data_processor: true,
+  });
+}
 
 const isSlotInitialized = (slot: HTMLElement): boolean =>
   slot.dataset.adUnitInitialized === '1' || slot.hasAttribute('data-adsbygoogle-status');

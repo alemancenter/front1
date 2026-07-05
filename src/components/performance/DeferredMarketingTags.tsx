@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { hasAdvertisementConsent } from '@/lib/cookie-consent';
+import { enableRestrictedDataProcessing } from '@/lib/adsense';
 import { loadScriptOnce, runAfterIdle } from '@/lib/performance/loadThirdParties';
 
 type DeferredMarketingTagsProps = {
@@ -16,6 +17,15 @@ export default function DeferredMarketingTags({ enabled, adsenseClient }: Deferr
     const loadAdsense = () => {
       const client = (adsenseClient || '').trim();
       if (!client) return;
+
+      // No certified IAB TCF CMP runs on this site, so Google's ad server
+      // rejects (403) any request it geo-flags as GDPR/EEA traffic once it
+      // can't validate a real consent string. Requesting Restricted Data
+      // Processing tells Google to serve non-personalized ads under a
+      // lighter compliance bar instead of rejecting the request outright.
+      // Must be queued before/alongside the per-slot push({}) calls, and
+      // queuing works even while adsbygoogle.js is still loading.
+      enableRestrictedDataProcessing(client);
 
       loadScriptOnce(
         'adsense',

@@ -1239,7 +1239,11 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>إعلانات سطح المكتب</CardTitle>
-                  <CardDescription>أدخل رقم Ad Slot فقط (مثال: 1234567890)</CardDescription>
+                  <CardDescription>
+                    أدخل رقم Ad Slot فقط (مثال: 1234567890). لو الوحدة من نوع خاص (Multiplex/In-feed) الصق كود
+                    الإعلان الكامل من AdSense هنا مباشرةً بدل الرقم فقط، حتى يُحفظ الشكل الصحيح (autorelaxed
+                    مثلاً) ولا يظهر فارغاً.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid lg:grid-cols-2 gap-4">
@@ -1276,7 +1280,11 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>إعلانات الجوال</CardTitle>
-                  <CardDescription>أدخل رقم Ad Slot فقط (مثال: 1234567890)</CardDescription>
+                  <CardDescription>
+                    أدخل رقم Ad Slot فقط (مثال: 1234567890). لو الوحدة من نوع خاص (Multiplex/In-feed) الصق كود
+                    الإعلان الكامل من AdSense هنا مباشرةً بدل الرقم فقط، حتى يُحفظ الشكل الصحيح (autorelaxed
+                    مثلاً) ولا يظهر فارغاً.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid lg:grid-cols-2 gap-4">

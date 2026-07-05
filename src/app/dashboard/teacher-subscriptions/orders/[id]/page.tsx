@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { CheckCircle2, Loader2, ReceiptText, XCircle } from 'lucide-react';
-import { teacherSubscriptionService, type TeacherOrderDetail } from '@/lib/api/services/teacher-subscription';
+import { teacherSubscriptionService, parseTeacherProfileSubjects, type TeacherOrderDetail } from '@/lib/api/services/teacher-subscription';
 
 function formatDate(value?: string) {
   if (!value) return '-';
@@ -98,7 +98,7 @@ export default function TeacherOrderDetailPage() {
           <h2 className="mb-4 text-lg font-black text-slate-900 dark:text-white">بيانات المعلم</h2>
           <Info label="الاسم" value={order.user?.name || '-'} />
           <Info label="البريد" value={order.user?.email || '-'} />
-          <Info label="المادة" value={data?.profile?.subject || '-'} />
+          <Info label="المواد" value={parseTeacherProfileSubjects(data?.profile).join('، ') || '-'} />
           <Info label="المدرسة" value={data?.profile?.school || '-'} />
           <Info label="المدينة" value={data?.profile?.city || '-'} />
           <Info label="الهاتف" value={order.phone || data?.profile?.phone || '-'} />

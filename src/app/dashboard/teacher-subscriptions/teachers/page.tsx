@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Search, Eye } from 'lucide-react';
-import { teacherSubscriptionService, type TeacherProfile } from '@/lib/api/services/teacher-subscription';
+import { teacherSubscriptionService, parseTeacherProfileSubjects, type TeacherProfile } from '@/lib/api/services/teacher-subscription';
 
 export default function TeacherSubscriptionsTeachersPage() {
   const [items, setItems] = useState<TeacherProfile[]>([]);
@@ -48,7 +48,7 @@ function Table({ loading, items, onRemove }: { loading: boolean; items: TeacherP
         <thead><tr className="border-b text-slate-500"><th className="py-3">المعلم</th><th>البريد</th><th>المادة</th><th>المدرسة</th><th>الهاتف</th><th>المدينة</th><th>إجراء</th></tr></thead>
         <tbody>{items.map((item) => (
           <tr key={item.id} className="border-b border-slate-50 dark:border-slate-800">
-            <td className="py-4 font-bold">{item.user?.name || '-'}</td><td>{item.user?.email || '-'}</td><td>{item.subject || '-'}</td><td>{item.school || '-'}</td><td>{item.phone || '-'}</td><td>{item.city || '-'}</td><td><a href={`/dashboard/teacher-subscriptions/teachers/${item.user_id}`} className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100"><Eye className="inline h-4 w-4" /> تفاصيل</a>
+            <td className="py-4 font-bold">{item.user?.name || '-'}</td><td>{item.user?.email || '-'}</td><td>{parseTeacherProfileSubjects(item).join('، ') || '-'}</td><td>{item.school || '-'}</td><td>{item.phone || '-'}</td><td>{item.city || '-'}</td><td><a href={`/dashboard/teacher-subscriptions/teachers/${item.user_id}`} className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100"><Eye className="inline h-4 w-4" /> تفاصيل</a>
                   <button onClick={() => onRemove(item.user_id)} className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100">حذف العضوية</button></td>
           </tr>
         ))}</tbody>

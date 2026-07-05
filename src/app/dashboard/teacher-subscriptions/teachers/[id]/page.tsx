@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Loader2, UserRound, MonitorSmartphone, Download, Sparkles } from 'lucide-react';
-import { teacherSubscriptionService, type TeacherAdminDetail } from '@/lib/api/services/teacher-subscription';
+import { teacherSubscriptionService, parseTeacherProfileSubjects, type TeacherAdminDetail } from '@/lib/api/services/teacher-subscription';
 
 export default function TeacherAdminDetailPage() {
   const params = useParams<{ id: string }>();
@@ -36,7 +36,9 @@ export default function TeacherAdminDetailPage() {
         <UserRound className="mb-3 h-9 w-9" />
         <h1 className="text-2xl font-black">{data?.user?.name || 'تفاصيل المعلم'}</h1>
         <p className="mt-1 text-emerald-50">{data?.user?.email || '-'}</p>
-        <p className="mt-2 text-sm text-emerald-50">المادة: {data?.profile?.subject || '-'} / المدرسة: {data?.profile?.school || '-'}</p>
+        <p className="mt-2 text-sm text-emerald-50">
+          {parseTeacherProfileSubjects(data?.profile).length > 1 ? 'المواد' : 'المادة'}: {parseTeacherProfileSubjects(data?.profile).join('، ') || '-'} / المدرسة: {data?.profile?.school || '-'}
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

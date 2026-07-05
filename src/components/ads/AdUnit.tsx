@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { AdSlotConfig } from '@/lib/adsense';
-import { initializeAdSlots } from '@/lib/adsense';
+import { initializeAdSlots, enableRestrictedDataProcessing } from '@/lib/adsense';
 import { hasAdvertisementConsent } from '@/lib/cookie-consent';
 
 interface AdUnitProps {
@@ -22,6 +22,10 @@ export default function AdUnit({ config, adClient, className = '' }: AdUnitProps
     const tryInit = () => {
       if (!hasAdvertisementConsent()) return;
       if (cleanupRef.current) return; // already initialized
+      // Idempotent — safe even if DeferredMarketingTags already queued this.
+      // Ensures RDP is set even if an AdUnit mounts before that component's
+      // effect runs, avoiding the GDPR-flagged-traffic 403 from Google.
+      enableRestrictedDataProcessing(adClient);
       cleanupRef.current = initializeAdSlots(container) ?? null;
     };
 

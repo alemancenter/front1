@@ -20,6 +20,7 @@ export default function TeacherAIToolsPage() {
     prompt: '',
     grade: '',
     semester: '',
+    subject: '',
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TeacherAIGenerateResult | null>(null);
@@ -29,7 +30,10 @@ export default function TeacherAIToolsPage() {
     let mounted = true;
     teacherSubscriptionService.workspace()
       .then((data) => {
-        if (mounted) setWorkspace(data);
+        if (!mounted) return;
+        setWorkspace(data);
+        const firstSubject = (data?.subjects && data.subjects[0]) || data?.subject || '';
+        setForm((prev) => (prev.subject ? prev : { ...prev, subject: firstSubject }));
       })
       .catch(() => {
         if (mounted) setWorkspace(null);
@@ -39,6 +43,10 @@ export default function TeacherAIToolsPage() {
       mounted = false;
     };
   }, []);
+
+  const subjectOptions = (workspace?.subjects && workspace.subjects.length > 0)
+    ? workspace.subjects
+    : (workspace?.subject ? [workspace.subject] : []);
 
   async function generate() {
     if (!form.title.trim()) {
@@ -53,6 +61,7 @@ export default function TeacherAIToolsPage() {
         prompt: form.prompt,
         grade: form.grade,
         semester: form.semester,
+        subject: form.subject,
       });
       setResult(data);
       toast.success('تم إنشاء المخرج الذكي');
@@ -77,7 +86,7 @@ export default function TeacherAIToolsPage() {
     <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black text-slate-900 dark:text-white">أدوات المعلم الذكية</h1>
-        <p className="mt-2 text-sm text-slate-500">إنشاء نماذج امتحانات، إجابات، أوراق عمل، خطط علاجية وتحليل محتوى ضمن حدود اشتراكك. المادة مقفلة حسب مادة الاشتراك ولا يمكن تغييرها يدويًا.</p>
+        <p className="mt-2 text-sm text-slate-500">إنشاء نماذج امتحانات، إجابات، أوراق عمل، خطط علاجية وتحليل محتوى ضمن حدود اشتراكك، لأي من موادك المسجّلة.</p>
       </div>
 
       <div className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm dark:bg-slate-900 md:grid-cols-2">
@@ -86,9 +95,15 @@ export default function TeacherAIToolsPage() {
         </select>
         <input className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-800 dark:bg-slate-950" placeholder="العنوان" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <input className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-800 dark:bg-slate-950" placeholder="الصف" value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })} />
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-          المادة حسب الاشتراك: {workspace?.subject || 'يتم تحديدها تلقائيًا من اشتراكك'}
-        </div>
+        {subjectOptions.length > 1 ? (
+          <select className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}>
+            {subjectOptions.map((subject) => <option key={subject} value={subject}>{subject}</option>)}
+          </select>
+        ) : (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            المادة: {form.subject || workspace?.subject || 'يتم تحديدها تلقائيًا من اشتراكك'}
+          </div>
+        )}
         <input className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-800 dark:bg-slate-950" placeholder="الفصل" value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} />
         <textarea className="min-h-[140px] rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-800 dark:bg-slate-950 md:col-span-2" placeholder="تفاصيل إضافية للمعلم..." value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} />
 
