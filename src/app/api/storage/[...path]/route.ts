@@ -8,6 +8,14 @@ export async function GET(
   const { path } = await params;
   const token = request.cookies.get('token')?.value;
 
+  // Reject traversal segments ("..", ".") before building the backend path —
+  // otherwise WHATWG URL resolution collapses them and escapes the intended
+  // "/storage/" prefix, turning this into an open proxy to any path on the
+  // internal backend host.
+  if ((path || []).some((segment) => segment === '..' || segment === '.')) {
+    return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+  }
+
   // This route only runs server-side, so use the internal URL to hit Go Fiber
   // directly (plain HTTP on 127.0.0.1:8082, bypasses Nginx/SSL overhead).
   const base = API_CONFIG.INTERNAL_URL;
@@ -19,6 +27,11 @@ export async function GET(
     : `/storage${requestedPath}`;
 
   const backendUrl = new URL(`${backendRoot}${backendPath}`);
+
+  // Defense in depth: confirm URL resolution didn't still escape /storage/.
+  if (!backendUrl.pathname.startsWith('/storage/')) {
+    return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+  }
   request.nextUrl.searchParams.forEach((value, key) => {
     backendUrl.searchParams.append(key, value);
   });
