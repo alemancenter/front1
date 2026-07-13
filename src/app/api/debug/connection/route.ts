@@ -10,6 +10,10 @@ import { API_CONFIG, getApiHostname } from '@/lib/api/config';
 import { internalFetch, shouldUseInternalFetch } from '@/lib/api/internal-fetch';
 
 export async function GET(request: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const countryCode = request.nextUrl.searchParams.get('country') || 'jo';
   const countryMap: Record<string, string> = { 'jo': '1', 'sa': '2', 'eg': '3', 'ps': '4' };
   const countryId = countryMap[countryCode] || '1';

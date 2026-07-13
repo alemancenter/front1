@@ -1,6 +1,4 @@
-const dangerousTags = /<\s*(script|style|object|embed|link|meta)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>|<\s*(script|style|object|embed|link|meta)[^>]*\/?>/gi;
-const dangerousAttrs = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
-const dangerousUrls = /\s+(href|src)\s*=\s*(["'])\s*(javascript:|data:text\/html)[\s\S]*?\2/gi;
+import DOMPurify from 'isomorphic-dompurify';
 
 // --- External link processing ---
 
@@ -47,57 +45,75 @@ function isBlockedHref(href: string): boolean {
   }
 }
 
+const ALLOWED_TAGS = [
+  'p', 'br', 'hr', 'span', 'div', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup',
+  'blockquote', 'pre', 'code',
+  'ul', 'ol', 'li',
+  'a', 'img', 'figure', 'figcaption',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption',
+  'iframe',
+];
+
+const ALLOWED_ATTR = [
+  'href', 'src', 'alt', 'title', 'class', 'id', 'style',
+  'target', 'rel', 'colspan', 'rowspan', 'width', 'height',
+  'frameborder', 'allow', 'allowfullscreen', 'loading', 'sandbox',
+];
+
 /**
- * Processes every <a> tag in the HTML string:
- * - Blocked domains → href replaced with "#"
- * - All external links → target="_blank" rel="noopener noreferrer"
- * Internal / relative / anchor links are left untouched.
+ * Sanitizes rich-text HTML content before it is rendered via
+ * dangerouslySetInnerHTML. Uses DOMPurify (a real HTML parser) rather than
+ * regex matching so it cannot be bypassed by attribute-boundary tricks
+ * (e.g. `<svg/onload=...>`), unclosed/unknown tags (e.g. `<base href=...>`),
+ * or control-character obfuscated URL schemes.
+ *
+ * `trustedIframeHosts` is an allow-list of hostnames permitted in <iframe src>;
+ * any iframe pointing elsewhere is stripped entirely.
  */
-function processExternalLinks(html: string): string {
-  return html.replace(/<a\b([^>]*)>/gi, (_tag, attrs: string) => {
-    const hrefMatch = attrs.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))/i);
-    if (!hrefMatch) return `<a${attrs}>`;
-
-    const href = hrefMatch[1] ?? hrefMatch[2] ?? hrefMatch[3] ?? '';
-    if (!isExternalHref(href)) return `<a${attrs}>`;
-
-    const finalHref = isBlockedHref(href) ? '#' : href;
-
-    const cleanAttrs = attrs
-      .replace(/\bhref\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '')
-      .replace(/\s*\brel\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '')
-      .replace(/\s*\btarget\s*=\s*(?:"[^"]*"|'[^']*'|\S+)/gi, '')
-      .trim();
-
-    const attrStr = cleanAttrs ? ` ${cleanAttrs}` : '';
-    return `<a${attrStr} href="${finalHref}" target="_blank" rel="noopener noreferrer">`;
-  });
-}
-
 export function sanitizeRichHtml(input: string, trustedIframeHosts: string[] = []) {
-  let html = String(input || '');
+  const html = String(input || '');
 
-  html = html.replace(dangerousTags, '');
-  html = html.replace(dangerousAttrs, '');
-  html = html.replace(dangerousUrls, ' $1="#"');
-
-  html = html.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, (iframe) => {
-    const srcMatch = iframe.match(/\s+src\s*=\s*(["'])(.*?)\1/i);
-    if (!srcMatch) return '';
-
+  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+    if (data.tagName !== 'iframe') return;
+    const el = node as unknown as Element;
+    const src = el.getAttribute?.('src') || '';
+    let host = '';
     try {
-      const host = new URL(srcMatch[2]).hostname;
-      if (!trustedIframeHosts.includes(host)) return '';
+      host = new URL(src).hostname;
     } catch {
-      return '';
+      el.remove?.();
+      return;
     }
-
-    return iframe
-      .replace(dangerousAttrs, '')
-      .replace(dangerousUrls, ' $1="#"')
-      .replace(/\s+sandbox\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-      .replace('<iframe', '<iframe sandbox="allow-scripts allow-same-origin allow-presentation"');
+    if (!trustedIframeHosts.includes(host)) {
+      el.remove?.();
+      return;
+    }
+    el.setAttribute?.('sandbox', 'allow-scripts allow-same-origin allow-presentation');
   });
 
-  return processExternalLinks(html);
+  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    const el = node as unknown as Element;
+    if (el.tagName !== 'A') return;
+    const href = el.getAttribute?.('href') || '';
+    if (!isExternalHref(href)) return;
+    if (isBlockedHref(href)) {
+      el.setAttribute?.('href', '#');
+      return;
+    }
+    el.setAttribute?.('target', '_blank');
+    el.setAttribute?.('rel', 'noopener noreferrer');
+  });
+
+  try {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS,
+      ALLOWED_ATTR,
+      ALLOW_DATA_ATTR: false,
+      ADD_TAGS: [],
+    });
+  } finally {
+    DOMPurify.removeHook('uponSanitizeElement');
+    DOMPurify.removeHook('afterSanitizeAttributes');
+  }
 }
